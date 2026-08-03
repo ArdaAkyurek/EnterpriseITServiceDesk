@@ -34,7 +34,7 @@ namespace EnterpriseIT.Domain.Entities
 
         public Role Role { get; set; } = null!;
 
-        public ICollection<Notification> Notifications { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
         public ICollection<Ticket> CreatedTickets { get; set; } = new List<Ticket>();
 
@@ -48,5 +48,7 @@ namespace EnterpriseIT.Domain.Entities
         public ICollection<TicketAttachment> UploadedAttachments { get; set; } = new List<TicketAttachment>();
 
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+
+        
     }
 }

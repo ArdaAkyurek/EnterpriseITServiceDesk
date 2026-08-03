@@ -48,7 +48,9 @@ namespace EnterpriseIT.Persistence.Configurations
             // Relationships
             builder.HasOne(x => x.Role)
                    .WithMany(x => x.Users)
-                   .HasForeignKey(x => x.RoleId);
+                   .HasForeignKey(x => x.RoleId)
+                   .OnDelete(DeleteBehavior.Restrict);
+                   
 
             builder.HasOne(x => x.Department)
                    .WithMany(x => x.Users)

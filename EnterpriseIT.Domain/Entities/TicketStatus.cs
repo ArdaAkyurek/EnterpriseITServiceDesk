@@ -14,7 +14,7 @@ namespace EnterpriseIT.Domain.Entities
 
         public string StatusName { get; set; } = string.Empty;
 
-        public string StatusDescription { get; set; }
+        public string StatusDescription { get; set; } = null!;
 
         // Navigation Property
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
