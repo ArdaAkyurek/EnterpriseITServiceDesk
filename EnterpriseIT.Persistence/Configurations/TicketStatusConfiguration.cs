@@ -21,6 +21,28 @@ namespace EnterpriseIT.Persistence.Configurations
 
             builder.Property(x => x.StatusDescription)
                    .HasMaxLength(250);
+
+
+            builder.HasData(
+    new TicketStatus
+    {
+        TicketStatusId = 1,
+        StatusName = "Open",
+        StatusDescription = "Newly created ticket"
+    },
+    new TicketStatus
+    {
+        TicketStatusId = 2,
+        StatusName = "In Progress",
+        StatusDescription = "Work in progress"
+    },
+    new TicketStatus
+    {
+        TicketStatusId = 3,
+        StatusName = "Closed",
+        StatusDescription = "Issue resolved"
+    }
+);
         }
     }
 }

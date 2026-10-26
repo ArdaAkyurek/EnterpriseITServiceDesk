@@ -29,6 +29,24 @@ namespace EnterpriseIT.Persistence.Configurations
             builder.Property(x => x.Description)
                 .HasMaxLength(250);
 
+            builder.HasData(
+    new Role
+    {
+        RoleId = 1,
+        RoleName = "Admin"
+    },
+    new Role
+    {
+        RoleId = 2,
+        RoleName = "Technician"
+    },
+    new Role
+    {
+        RoleId = 3,
+        RoleName = "Employee"
+    }
+);
+
         }
     }
 }

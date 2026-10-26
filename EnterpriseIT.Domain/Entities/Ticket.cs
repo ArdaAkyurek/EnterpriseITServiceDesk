@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace EnterpriseIT.Domain.Entities
 {
     public class Ticket : BaseEntity
@@ -20,7 +21,7 @@ namespace EnterpriseIT.Domain.Entities
         // Foreign Keys
         public int CreatedByUserId { get; set; }
 
-        public int AssignedToUserId { get; set; }
+        public int? AssignedToUserId { get; set; }
 
         public int CategoryId { get; set; }
 
@@ -28,12 +29,12 @@ namespace EnterpriseIT.Domain.Entities
 
         public int StatusId { get; set; }
 
-        public int AssetId { get; set; }
+        public int? AssetId { get; set; }
 
         // Navigation Properties
         public User CreatedByUser { get; set; } = null!;
 
-        public User AssignedToUser { get; set; } = null!;
+        public User? AssignedToUser { get; set; }
 
         public TicketCategory Category { get; set; } = null!;
 
@@ -41,7 +42,7 @@ namespace EnterpriseIT.Domain.Entities
 
         public TicketStatus Status { get; set; } = null!;
 
-        public Asset Asset { get; set; } = null!;
+        public Asset? Asset { get; set; }
 
         public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
 

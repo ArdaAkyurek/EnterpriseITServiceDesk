@@ -95,4 +95,55 @@ public class DepartmentController : ControllerBase
 
         return NoContent();
     }
+
+    public float Mod(float a, float b)
+    {
+        if (a == 0 || b== 0) { 
+                return 0;
+    }
+       float sonuc = a % b;
+        if (sonuc > 100)
+        {
+            return 100;
+        }
+        return sonuc;
+    }
+
+    public float Faktoriyel(int f)
+    {
+
+        if (f < 0) { 
+            return 0;
+        }
+
+        float sonuc = 1;
+
+        
+        for (int i = f; i > 0; i--)
+        {
+            sonuc *= i; 
+        }
+     
+
+        return sonuc;
+    }
+
+    public string nothesapla(float vize,float final,int devamsızlık)
+    {
+        if (devamsızlık > 10)
+        {
+            return "FF";
+        }
+        double sonuc = 0;
+        sonuc = (vize * 0.4) + (final * 0.6);
+        return sonuc switch {
+            >= 90 => "AA",
+             _ => "FF"
+
+
+        };
+
+    }
+
+
 }

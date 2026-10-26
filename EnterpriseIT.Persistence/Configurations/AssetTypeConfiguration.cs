@@ -24,6 +24,34 @@ namespace EnterpriseIT.Persistence.Configurations
             builder.Property(x => x.Name)
                    .IsRequired()
                    .HasMaxLength(100);
+
+            builder.HasData(
+    new AssetType
+    {
+        AssetTypeId = 1,
+        Name = "Laptop"
+    },
+    new AssetType
+    {
+        AssetTypeId = 2,
+        Name = "Desktop"
+    },
+    new AssetType
+    {
+        AssetTypeId = 3,
+        Name = "Monitor"
+    },
+    new AssetType
+    {
+        AssetTypeId = 4,
+        Name = "Printer"
+    },
+    new AssetType
+    {
+        AssetTypeId = 5,
+        Name = "Server"
+    }
+);
         }
     }
 }

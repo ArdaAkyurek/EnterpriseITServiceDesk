@@ -174,6 +174,38 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasKey("AssetTypeId");
 
                     b.ToTable("AssetTypes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            AssetTypeId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Laptop"
+                        },
+                        new
+                        {
+                            AssetTypeId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Desktop"
+                        },
+                        new
+                        {
+                            AssetTypeId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Monitor"
+                        },
+                        new
+                        {
+                            AssetTypeId = 4,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Printer"
+                        },
+                        new
+                        {
+                            AssetTypeId = 5,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Server"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.AuditLog", b =>
@@ -230,8 +262,8 @@ namespace EnterpriseIT.Persistence.Migrations
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -239,6 +271,29 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasKey("DepartmentId");
 
                     b.ToTable("Departments", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentDescription = "Information Technology",
+                            DepartmentName = "IT"
+                        },
+                        new
+                        {
+                            DepartmentId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentDescription = "HR Department",
+                            DepartmentName = "Human Resources"
+                        },
+                        new
+                        {
+                            DepartmentId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentDescription = "Finance Department",
+                            DepartmentName = "Finance"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.Notification", b =>
@@ -304,6 +359,26 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoleName = "Technician"
+                        },
+                        new
+                        {
+                            RoleId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoleName = "Employee"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.Ticket", b =>
@@ -314,10 +389,10 @@ namespace EnterpriseIT.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TicketId"));
 
-                    b.Property<int>("AssetId")
+                    b.Property<int?>("AssetId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("AssignedToUserId")
+                    b.Property<int?>("AssignedToUserId")
                         .HasColumnType("integer");
 
                     b.Property<int>("CategoryId")
@@ -414,6 +489,11 @@ namespace EnterpriseIT.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TicketCategoryId"));
 
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -421,17 +501,35 @@ namespace EnterpriseIT.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.Property<string>("TicketCategoryName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("TicketCategoryId");
 
                     b.ToTable("TicketCategories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            TicketCategoryId = 1,
+                            CategoryName = "Hardware",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Hardware related issues"
+                        },
+                        new
+                        {
+                            TicketCategoryId = 2,
+                            CategoryName = "Software",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Software related issues"
+                        },
+                        new
+                        {
+                            TicketCategoryId = 3,
+                            CategoryName = "Network",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Network related issues"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.TicketComment", b =>
@@ -484,7 +582,7 @@ namespace EnterpriseIT.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.Property<string>("TicketPriorityName")
+                    b.Property<string>("PriorityName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -495,6 +593,29 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasKey("TicketPriorityId");
 
                     b.ToTable("TicketPriorities", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            TicketPriorityId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Low Priority",
+                            PriorityName = "Low"
+                        },
+                        new
+                        {
+                            TicketPriorityId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Medium Priority",
+                            PriorityName = "Medium"
+                        },
+                        new
+                        {
+                            TicketPriorityId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "High Priority",
+                            PriorityName = "High"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.TicketStatus", b =>
@@ -524,6 +645,29 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasKey("TicketStatusId");
 
                     b.ToTable("TicketStatuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            TicketStatusId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StatusDescription = "Newly created ticket",
+                            StatusName = "Open"
+                        },
+                        new
+                        {
+                            TicketStatusId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StatusDescription = "Work in progress",
+                            StatusName = "In Progress"
+                        },
+                        new
+                        {
+                            TicketStatusId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StatusDescription = "Issue resolved",
+                            StatusName = "Closed"
+                        });
                 });
 
             modelBuilder.Entity("EnterpriseIT.Domain.Entities.User", b =>
@@ -661,15 +805,11 @@ namespace EnterpriseIT.Persistence.Migrations
                 {
                     b.HasOne("EnterpriseIT.Domain.Entities.Asset", "Asset")
                         .WithMany("Tickets")
-                        .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AssetId");
 
                     b.HasOne("EnterpriseIT.Domain.Entities.User", "AssignedToUser")
                         .WithMany("AssignedTickets")
-                        .HasForeignKey("AssignedToUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AssignedToUserId");
 
                     b.HasOne("EnterpriseIT.Domain.Entities.TicketCategory", "Category")
                         .WithMany("Tickets")
@@ -680,7 +820,7 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasOne("EnterpriseIT.Domain.Entities.User", "CreatedByUser")
                         .WithMany("CreatedTickets")
                         .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EnterpriseIT.Domain.Entities.TicketPriority", "Priority")
@@ -757,7 +897,7 @@ namespace EnterpriseIT.Persistence.Migrations
                     b.HasOne("EnterpriseIT.Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Department");

@@ -55,6 +55,11 @@ namespace EnterpriseIT.Persistence.Configurations
             builder.HasOne(x => x.Asset)
                    .WithMany(x => x.Tickets)
                    .HasForeignKey(x => x.AssetId);
+
+            builder.HasOne(x => x.CreatedByUser)
+                   .WithMany(x => x.CreatedTickets)
+                   .HasForeignKey(x => x.CreatedByUserId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

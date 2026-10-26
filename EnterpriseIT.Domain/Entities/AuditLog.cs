@@ -17,10 +17,10 @@ namespace EnterpriseIT.Domain.Entities
 
         public int EntityId { get; set; }
 
-        // Foreign Key
+        
         public int UserId { get; set; }
 
-        // Navigation Property
+       //Navigation property
         public User User { get; set; } = null!;
     }
 }

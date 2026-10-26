@@ -10,6 +10,7 @@ namespace EnterpriseIT.Domain.Entities
 {
     public class TicketComment : BaseEntity
     {
+        
         public int CommentId { get; set; }
 
         public string Comment { get; set; } = string.Empty;

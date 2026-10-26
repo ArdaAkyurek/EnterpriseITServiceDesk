@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using EnterpriseIT.Domain.Entities;
+﻿using EnterpriseIT.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,12 +15,33 @@ namespace EnterpriseIT.Persistence.Configurations
             builder.ToTable("TicketPriorities");
 
             // Properties
-            builder.Property(x => x.TicketPriorityName)
+            builder.Property(x => x.PriorityName)
                    .IsRequired()
                    .HasMaxLength(50);
 
             builder.Property(x => x.Description)
                    .HasMaxLength(250);
+
+            builder.HasData(
+    new TicketPriority
+    {
+        TicketPriorityId = 1,
+        PriorityName = "Low",
+        Description = "Low Priority"
+    },
+    new TicketPriority
+    {
+        TicketPriorityId = 2,
+        PriorityName = "Medium",
+        Description = "Medium Priority"
+    },
+    new TicketPriority
+    {
+        TicketPriorityId = 3,
+        PriorityName = "High",
+        Description = "High Priority"
+    }
+);
         }
     }
 }

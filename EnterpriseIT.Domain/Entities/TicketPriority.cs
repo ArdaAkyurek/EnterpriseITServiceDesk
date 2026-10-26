@@ -12,7 +12,7 @@ namespace EnterpriseIT.Domain.Entities
     {
         public int TicketPriorityId { get; set; }
 
-        public string TicketPriorityName { get; set; } = string.Empty;
+        public string PriorityName { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
 
