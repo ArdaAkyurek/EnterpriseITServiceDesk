@@ -11,6 +11,7 @@ namespace EnterpriseIT.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
     public class TicketStatusController : ControllerBase
     {
         private readonly ITicketStatusRepository _ticketStatusRepository;

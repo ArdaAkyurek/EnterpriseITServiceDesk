@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AuthService } from '../../services/auth';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -9,5 +10,5 @@ import { RouterLink } from '@angular/router';
   styleUrl: './sidebar.css'
 })
 export class Sidebar {
-
+  readonly auth = inject(AuthService);
 }

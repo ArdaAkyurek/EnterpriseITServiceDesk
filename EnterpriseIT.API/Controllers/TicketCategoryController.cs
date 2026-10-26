@@ -8,6 +8,7 @@ namespace EnterpriseIT.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 public class TicketCategoryController : ControllerBase
 {
     private readonly ITicketCategoryRepository _ticketCategoryRepository;

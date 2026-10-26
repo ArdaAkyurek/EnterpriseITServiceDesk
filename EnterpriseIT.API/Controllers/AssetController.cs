@@ -48,6 +48,18 @@ namespace EnterpriseIT.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateAssetDto dto)
         {
+            if (dto.PurchaseDate == default || dto.WarrantyEndDate == default ||
+                dto.WarrantyEndDate < dto.PurchaseDate)
+            {
+                return BadRequest("Satın alma ve garanti tarihlerini kontrol edin. Garanti bitişi satın alma tarihinden önce olamaz.");
+            }
+
+            dto.AssetCode = dto.AssetCode.Trim();
+            dto.Brand = dto.Brand.Trim();
+            dto.Model = dto.Model.Trim();
+            dto.SerialNumber = dto.SerialNumber.Trim();
+            dto.Status = dto.Status.Trim();
+
             var existingAsset =
                 await _assetRepository.GetByAssetCodeAsync(dto.AssetCode);
 
@@ -65,6 +77,7 @@ namespace EnterpriseIT.API.Controllers
             }
 
             var asset = _mapper.Map<Asset>(dto);
+            asset.CreatedAt = DateTime.UtcNow;
 
             await _assetRepository.AddAsync(asset);
             await _assetRepository.SaveChangesAsync();

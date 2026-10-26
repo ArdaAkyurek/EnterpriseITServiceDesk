@@ -8,6 +8,7 @@ namespace EnterpriseIT.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 public class AuditLogController : ControllerBase
 {
     private readonly IAuditLogRepository _auditLogRepository;
@@ -75,4 +76,4 @@ public class AuditLogController : ControllerBase
         return NoContent();
 
     }
-} 
+}

@@ -61,8 +61,8 @@ namespace EnterpriseIT.API.Controllers
 
             var attachment = _mapper.Map<TicketAttachment>(dto);
 
-            // Şimdilik giriş yapan kullanıcı
-            attachment.UploadedByUserId = 1;
+            // Giriş yapan kullanıcı
+            attachment.UploadedByUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
 
             await _ticketAttachmentRepository.AddAsync(attachment);
             await _ticketAttachmentRepository.SaveChangesAsync();

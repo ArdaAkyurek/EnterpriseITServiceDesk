@@ -91,8 +91,8 @@ namespace EnterpriseIT.API.Controllers
             // DTO -> Entity
             var ticket = _mapper.Map<Ticket>(dto);
 
-            // Şimdilik giriş yapan kullanıcı
-            ticket.CreatedByUserId = 1;
+            // Giriş yapan kullanıcı
+            ticket.CreatedByUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
 
             // Henüz kimseye atanmadı
             ticket.AssignedToUserId = null;

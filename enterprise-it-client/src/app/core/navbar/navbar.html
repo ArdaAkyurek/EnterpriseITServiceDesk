@@ -1,5 +1,13 @@
 <header class="navbar">
 
     <h2>Enterprise IT Service Desk</h2>
+    @if (auth.user(); as user) {
+      <div class="session">
+        <span>{{ user.firstName }} {{ user.lastName }} · {{ user.role }}</span>
+        <button type="button" (click)="logout()" [disabled]="pending()">{{ pending() ? 'Çıkılıyor…' : 'Çıkış yap' }}</button>
+      </div>
+    }
 
 </header>
+@if (error()) { <p class="session-error" role="alert">{{ error() }}</p> }
+@if (auth.permissionError()) { <p class="session-error" role="alert">{{ auth.permissionError() }}</p> }

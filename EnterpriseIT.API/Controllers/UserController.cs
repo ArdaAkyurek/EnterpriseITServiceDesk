@@ -6,28 +6,33 @@ using EnterpriseIT.Application.Interfaces.Repositories;
 using EnterpriseIT.Domain.Entities;
 using EnterpriseIT.Persistence.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 
 namespace EnterpriseIT.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly IMapper _mapper;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
         public UserController(
     IUserRepository userRepository,
     IDepartmentRepository departmentRepository,
     IRoleRepository roleRepository,
-    IMapper mapper)
+    IMapper mapper,
+    IPasswordHasher<User> passwordHasher)
         {
             _userRepository = userRepository;
             _departmentRepository = departmentRepository;
             _roleRepository = roleRepository;
             _mapper = mapper;
+            _passwordHasher = passwordHasher;
         }
 
         [HttpGet]
@@ -58,6 +63,7 @@ namespace EnterpriseIT.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateUserDto dto)
         {
+            dto.Email = dto.Email.Trim().ToLowerInvariant();
             var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
 
             if (existingUser != null)
@@ -78,6 +84,8 @@ namespace EnterpriseIT.API.Controllers
             }
 
             var user = _mapper.Map<User>(dto);
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
+            user.CreatedAt = DateTime.UtcNow;
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
@@ -92,6 +100,7 @@ namespace EnterpriseIT.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateUserDto dto)
         {
+            dto.Email = dto.Email.Trim().ToLowerInvariant();
             var user = await _userRepository.GetByIdAsync(id);
 
             if (user == null)
@@ -123,6 +132,11 @@ namespace EnterpriseIT.API.Controllers
             }
 
             _mapper.Map(dto, user);
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
+            }
+            user.UpdatedAt = DateTime.UtcNow;
             _userRepository.Update(user);
             await _userRepository.SaveChangesAsync();
             return NoContent();

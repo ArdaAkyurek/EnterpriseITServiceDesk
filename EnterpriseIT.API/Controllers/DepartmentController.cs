@@ -8,6 +8,7 @@ namespace EnterpriseIT.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 public class DepartmentController : ControllerBase
 {
     private readonly IDepartmentRepository _departmentRepository;

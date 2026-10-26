@@ -1,1 +1,130 @@
-<h1>ASSETS SAYFASINDAYIZ</h1>
+<section aria-labelledby="assets-title" [attr.aria-busy]="loading()">
+  <header class="assets-header">
+    <div>
+      <h1 id="assets-title">Demirbaşlar</h1>
+      <p>Kurumsal cihaz envanterini buradan takip edebilirsiniz.</p>
+    </div>
+    <div class="actions">
+      <button type="button" (click)="loadAssets()" [disabled]="loading() || saving()">Yenile</button>
+      <button type="button" class="primary" (click)="openForm()" [disabled]="formOpen()">Yeni demirbaş ekle</button>
+    </div>
+  </header>
+
+  @if (success()) {
+    <p class="message success" role="status">{{ success() }}</p>
+  }
+
+  @if (formOpen()) {
+    <form class="asset-form" [formGroup]="form" (ngSubmit)="saveAsset()" aria-labelledby="create-title" [attr.aria-busy]="saving()">
+      <h2 id="create-title">Yeni demirbaş</h2>
+      <p>Tüm alanlar zorunludur.</p>
+      @if (saveError()) { <p class="error message" role="alert">{{ saveError() }}</p> }
+      @if (typesLoading()) { <p role="status">Demirbaş türleri yükleniyor…</p> }
+      @if (typesError()) {
+        <div class="error message" role="alert">
+          <p>{{ typesError() }}</p>
+          <button type="button" (click)="loadAssetTypes()" [disabled]="typesLoading()">Türleri tekrar yükle</button>
+        </div>
+      }
+      <fieldset [disabled]="saving()">
+        <legend class="sr-only">Demirbaş bilgileri</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="asset-code">Demirbaş kodu</label>
+            <input id="asset-code" formControlName="assetCode" maxlength="50" required [attr.aria-invalid]="invalid('assetCode')" aria-describedby="code-error">
+            @if (invalid('assetCode')) { <small id="code-error">Demirbaş kodunu girin (en fazla 50 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="asset-type">Demirbaş türü</label>
+            <select id="asset-type" formControlName="assetTypeId" required [attr.aria-invalid]="invalid('assetTypeId')" aria-describedby="type-error">
+              <option [ngValue]="0">Tür seçin</option>
+              @for (type of assetTypes(); track type.assetTypeId) {
+                <option [ngValue]="type.assetTypeId">{{ type.name }}</option>
+              }
+            </select>
+            @if (invalid('assetTypeId')) { <small id="type-error">Bir demirbaş türü seçin.</small> }
+          </div>
+          <div class="field">
+            <label for="asset-brand">Marka</label>
+            <input id="asset-brand" formControlName="brand" maxlength="100" required [attr.aria-invalid]="invalid('brand')" aria-describedby="brand-error">
+            @if (invalid('brand')) { <small id="brand-error">Markayı girin (en fazla 100 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="asset-model">Model</label>
+            <input id="asset-model" formControlName="model" maxlength="100" required [attr.aria-invalid]="invalid('model')" aria-describedby="model-error">
+            @if (invalid('model')) { <small id="model-error">Modeli girin (en fazla 100 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="asset-serial">Seri numarası</label>
+            <input id="asset-serial" formControlName="serialNumber" maxlength="100" required [attr.aria-invalid]="invalid('serialNumber')" aria-describedby="serial-error">
+            @if (invalid('serialNumber')) { <small id="serial-error">Seri numarasını girin (en fazla 100 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="asset-status">Durum</label>
+            <select id="asset-status" formControlName="status" required>
+              <option value="Available">Kullanıma hazır</option>
+              <option value="In Use">Kullanımda</option>
+              <option value="Maintenance">Bakımda</option>
+              <option value="Retired">Kullanım dışı</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="asset-purchase">Satın alma tarihi</label>
+            <input id="asset-purchase" type="date" formControlName="purchaseDate" required [attr.aria-invalid]="invalid('purchaseDate')" aria-describedby="purchase-error">
+            @if (invalid('purchaseDate')) { <small id="purchase-error">Satın alma tarihini seçin.</small> }
+          </div>
+          <div class="field">
+            <label for="asset-warranty">Garanti bitişi</label>
+            <input id="asset-warranty" type="date" formControlName="warrantyEndDate" required [min]="form.controls.purchaseDate.value" [attr.aria-invalid]="invalid('warrantyEndDate') || form.hasError('warrantyBeforePurchase')" aria-describedby="warranty-error">
+            @if (invalid('warrantyEndDate')) { <small id="warranty-error">Garanti bitiş tarihini seçin.</small> }
+            @else if (form.hasError('warrantyBeforePurchase')) { <small id="warranty-error">Garanti bitişi satın alma tarihinden önce olamaz.</small> }
+          </div>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="saving() || typesLoading() || !assetTypes().length">{{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}</button>
+        <button type="button" (click)="closeForm()" [disabled]="saving()">Vazgeç</button>
+      </div>
+    </form>
+  }
+
+  @if (loading()) {
+    <p class="message" role="status">Demirbaşlar yükleniyor…</p>
+  } @else if (error()) {
+    <div class="message error" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="loadAssets()">Tekrar dene</button>
+    </div>
+  } @else if (assets().length === 0) {
+    <p class="message" role="status">Henüz kayıtlı demirbaş bulunmuyor.</p>
+  } @else {
+    <p class="count" role="status">Toplam {{ assets().length }} demirbaş</p>
+    <div class="table-container" tabindex="0" role="region" aria-label="Demirbaş listesi">
+      <table>
+        <caption>Kurumsal demirbaş envanteri</caption>
+        <thead>
+          <tr>
+            <th scope="col">Demirbaş kodu</th>
+            <th scope="col">Marka / Model</th>
+            <th scope="col">Seri numarası</th>
+            <th scope="col">Durum</th>
+            <th scope="col">Satın alma tarihi</th>
+            <th scope="col">Garanti bitişi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (asset of assets(); track asset.assetId) {
+            <tr>
+              <th scope="row">{{ asset.assetCode }}</th>
+              <td>{{ asset.brand }} {{ asset.model }}</td>
+              <td>{{ asset.serialNumber }}</td>
+              <td><span class="status">{{ asset.status || 'Belirtilmedi' }}</span></td>
+              <td>{{ asset.purchaseDate | date:'dd.MM.yyyy' }}</td>
+              <td>{{ asset.warrantyEndDate | date:'dd.MM.yyyy' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

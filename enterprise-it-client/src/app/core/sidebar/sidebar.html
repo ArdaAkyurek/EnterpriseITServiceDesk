@@ -1,11 +1,15 @@
 <nav class="sidebar">
 
   <a routerLink="/dashboard">Dashboard</a>
-  <a routerLink="/dashboard/assets">Assets</a>
+  @if (auth.hasRole('Admin', 'Technician')) {
+    <a routerLink="/dashboard/assets">Assets</a>
 
   <a href="#">Tickets</a>
+  }
+  @if (auth.hasRole('Admin')) {
   <a href="#">Users</a>
   <a href="#">Departments</a>
   <a href="#">Roles</a>
+  }
 
 </nav>

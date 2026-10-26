@@ -43,6 +43,7 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateAssetTypeDto dto)
         {
             var existingAssetType =
@@ -65,6 +66,7 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, UpdateAssetTypeDto dto)
         {
             var assetType = await _assetTypeRepository.GetByIdAsync(id);
@@ -93,6 +95,7 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var assetType = await _assetTypeRepository.GetByIdAsync(id);

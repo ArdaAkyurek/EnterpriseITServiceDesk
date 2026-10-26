@@ -1,0 +1,2 @@
+.login-error { color: #a32020; }
+.login-button:disabled { opacity: .65; cursor: wait; }

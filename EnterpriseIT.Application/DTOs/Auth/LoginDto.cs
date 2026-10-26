@@ -1,0 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace EnterpriseIT.Application.DTOs.Auth;
+
+public class LoginDto
+{
+    [Required, EmailAddress, StringLength(100)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(128)]
+    public string Password { get; set; } = string.Empty;
+}

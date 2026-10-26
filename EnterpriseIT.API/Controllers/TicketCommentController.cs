@@ -65,8 +65,8 @@ namespace EnterpriseIT.API.Controllers
 
             var comment = _mapper.Map<TicketComment>(dto);
 
-            // Şimdilik giriş yapan kullanıcı
-            comment.UserId = 1;
+            // Giriş yapan kullanıcı
+            comment.UserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
 
             await _ticketCommentRepository.AddAsync(comment);
             await _ticketCommentRepository.SaveChangesAsync();

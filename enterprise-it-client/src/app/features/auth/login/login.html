@@ -18,13 +18,15 @@
     </div>
 
     <!-- Sağ Taraf -->
-    <form class="login-right" (submit)="$event.preventDefault()">
+    <form class="login-right" [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="pending()">
 
       <div class="logo">
         Enterprise IT
       </div>
 
       <h2>Hoşgeldiniz</h2>
+      @if (sessionMessage) { <p role="status">{{ sessionMessage }}</p> }
+      @if (error()) { <p class="login-error" role="alert">{{ error() }}</p> }
 
      
 
@@ -35,7 +37,12 @@
         <input
           id="email"
           type="email"
-          placeholder="Enter your email">
+          formControlName="email" autocomplete="username" required maxlength="100"
+          [readOnly]="pending()" [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
+          aria-describedby="email-error" placeholder="E-posta adresiniz">
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <small id="email-error" class="login-error">Geçerli bir e-posta adresi girin.</small>
+        }
 
       </div>
 
@@ -46,16 +53,21 @@
         <input
           id="password"
           type="password"
-          placeholder="Enter your password">
+          formControlName="password" autocomplete="current-password" required maxlength="128"
+          [readOnly]="pending()" [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
+          aria-describedby="password-error" placeholder="Parolanız">
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small id="password-error" class="login-error">Parolanızı girin.</small>
+        }
 
       </div>
 
       <button
-    type="button"
+    type="submit"
     class="login-button"
-    (click)="login()">
+    [disabled]="pending()">
 
-    Sign In
+    {{ pending() ? 'Giriş yapılıyor…' : 'Giriş yap' }}
 
 </button>
 
