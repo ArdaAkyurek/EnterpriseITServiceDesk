@@ -1,13 +1,17 @@
 <header class="navbar">
-
+  <div class="navbar-left">
     <h2>Enterprise IT Service Desk</h2>
     @if (auth.user(); as user) {
-      <div class="session">
-        <span>{{ user.firstName }} {{ user.lastName }} · {{ user.role }}</span>
-        <button type="button" (click)="logout()" [disabled]="pending()">{{ pending() ? 'Çıkılıyor…' : 'Çıkış yap' }}</button>
-      </div>
+      <div class="identity"><span>{{ user.firstName }} {{ user.lastName }}</span><span class="role">{{ user.role }}</span></div>
     }
-
+  </div>
+  @if (auth.user()) {
+    <nav class="session" aria-label="Hesap işlemleri">
+      <app-notifications />
+      <a class="session-control" routerLink="/dashboard/profile">Profilim</a>
+      <button class="session-control" type="button" (click)="logout()" [disabled]="pending()">{{ pending() ? 'Çıkılıyor…' : 'Çıkış yap' }}</button>
+    </nav>
+  }
 </header>
 @if (error()) { <p class="session-error" role="alert">{{ error() }}</p> }
 @if (auth.permissionError()) { <p class="session-error" role="alert">{{ auth.permissionError() }}</p> }

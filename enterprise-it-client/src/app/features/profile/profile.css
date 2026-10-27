@@ -1,0 +1,47 @@
+:host { display: block; font-family: Arial, sans-serif; color: #172b4d; }
+.profile-page { max-width: 1120px; margin: 0 auto; padding: 12px 0 28px; }
+.page-heading { margin-bottom: 28px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .15em; color: #4263a5; margin: 0 0 10px; }
+h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: -.03em; }
+.page-heading > p:last-child, .section-heading p { color: #607089; font-size: 14px; line-height: 1.6; margin: 0; }
+.profile-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+.card { background: white; border: 1px solid #dce4ef; border-radius: 12px; padding: 26px; box-shadow: 0 3px 12px #172b4d04; }
+.identity { text-align: center; border-top: 4px solid #335fae; }
+.avatar { display: grid; place-items: center; width: 78px; height: 78px; border-radius: 24px; background: #eaf0fc; color: #335fae; font-size: 27px; font-weight: 700; margin: 0 auto 18px; }
+h2 { font-size: 19px; line-height: 1.4; margin: 0 0 8px; overflow-wrap: anywhere; }
+.email { color: #607089; font-size: 13px; overflow-wrap: anywhere; margin: 0 0 18px; }
+.badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.role-badge, .status-badge { padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.role-badge { color: #335fae; background: #edf2fc; }
+.status-badge { color: #246347; background: #edf8f1; }
+dl { border-top: 1px solid #edf0f5; margin: 24px 0 0; padding-top: 18px; text-align: left; }
+dl > div { margin-bottom: 16px; }
+dt { color: #728098; font-size: 12px; margin-bottom: 5px; }
+dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.identity-note { border-top: 1px solid #edf0f5; padding-top: 16px; text-align: left; margin-bottom: 0; }
+.settings { display: grid; gap: 24px; min-width: 0; }
+.section-heading { display: flex; align-items: start; gap: 12px; margin-bottom: 22px; }
+.section-number { flex-shrink: 0; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #edf2fc; color: #335fae; font-size: 12px; font-weight: 700; }
+.section-heading h2 { margin-bottom: 4px; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.optional { color: #728098; font-weight: 400; }
+input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid #bdcadd; border-radius: 7px; color: #172b4d; background: white; font: inherit; font-size: 14px; }
+input[aria-invalid="true"] { border-color: #b42323; }
+input:focus-visible, button:focus-visible { outline: 3px solid #aac6fa; outline-offset: 2px; }
+.help { color: #607089; font-size: 12px; line-height: 1.6; }
+.field { margin-bottom: 18px; }
+.password-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+button { padding: 11px 16px; border: 1px solid #bdcadd; border-radius: 7px; cursor: pointer; font: inherit; font-size: 13px; background: white; color: #172b4d; }
+.primary { background: #2859ae; border-color: #2859ae; color: white; font-weight: 600; }
+.primary:hover { background: #20498f; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.security-note { padding: 12px 14px; border-left: 3px solid #83a4df; background: #f2f6fc; color: #4f6587; font-size: 12px; line-height: 1.6; margin-bottom: 22px; }
+.notice { padding: 14px 16px; border: 1px solid #dce4ef; border-radius: 8px; font-size: 13px; line-height: 1.6; background: white; }
+.success { color: #246347; background: #edf8f1; border-color: #b8d9c4; }
+.error, .field-error { color: #a32626; }
+.error { background: #fff5f5; border-color: #ecc6c6; }
+.field-error { font-size: 12px; line-height: 1.5; margin-top: 8px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 960px) { .profile-grid { grid-template-columns: 1fr; } .identity { text-align: left; } .avatar { margin-left: 0; } .badges { justify-content: start; } }
+@media (max-width: 600px) { .password-grid { grid-template-columns: 1fr; gap: 0; } .card { padding: 20px; } h1 { font-size: 26px; } }

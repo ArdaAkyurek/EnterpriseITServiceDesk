@@ -9,4 +9,9 @@ namespace EnterpriseIT.Application.Interfaces.Repositories;
 
 public interface IDepartmentRepository : IGenericRepository<Department>
 {
+    Task<DepartmentWriteResult> CreateDepartmentAsync(Department department);
+    Task<DepartmentWriteResult> UpdateDepartmentAsync(Department department);
+    Task<DepartmentWriteResult> DeleteDepartmentAsync(int id);
 }
+
+public enum DepartmentWriteResult { Success, NotFound, DuplicateName, HasUsers }

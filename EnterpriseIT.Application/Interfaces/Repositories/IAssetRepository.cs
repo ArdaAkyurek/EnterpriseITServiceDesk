@@ -11,5 +11,6 @@ namespace EnterpriseIT.Application.Interfaces.Repositories
     public interface IAssetRepository : IGenericRepository<Asset>
     {
         Task<Asset?> GetByAssetCodeAsync(string assetCode);
+        Task<List<Asset>> GetForTicketAsync(int? assignedUserId = null);
     }
 }

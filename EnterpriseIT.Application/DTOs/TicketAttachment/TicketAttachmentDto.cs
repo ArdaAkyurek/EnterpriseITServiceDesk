@@ -12,8 +12,6 @@ namespace EnterpriseIT.Application.DTOs.TicketAttachment
 
         public string FileName { get; set; } = string.Empty;
 
-        public string FilePath { get; set; } = string.Empty;
-
         public int TicketId { get; set; }
 
         public string TicketTitle { get; set; } = string.Empty;

@@ -57,4 +57,45 @@ public class AuthController(IUserRepository users, IPasswordHasher<User> hasher,
         tokens.Revoke(User);
         return NoContent();
     }
+
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var user = await users.GetProfileAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+        return user == null || !user.IsActive ? Unauthorized() : Ok(ToProfile(user));
+    }
+
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
+        if (!await users.TryUpdatePhoneAsync(userId, phone)) return Unauthorized();
+        var user = await users.GetProfileAsync(userId);
+        return user == null || !user.IsActive ? Unauthorized() : Ok(ToProfile(user));
+    }
+
+    [HttpPut("password")]
+    [EnableRateLimiting("login")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    {
+        var user = await users.GetByIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+        if (user == null || !user.IsActive) return Unauthorized();
+        PasswordVerificationResult result;
+        try { result = hasher.VerifyHashedPassword(user, user.PasswordHash, dto.CurrentPassword); }
+        catch (FormatException) { result = PasswordVerificationResult.Failed; }
+        if (result == PasswordVerificationResult.Failed)
+            return BadRequest(new { message = "Mevcut parolanız hatalı." });
+        if (dto.CurrentPassword == dto.NewPassword)
+            return BadRequest(new { message = "Yeni parola mevcut parolanızdan farklı olmalıdır." });
+
+        var newHash = hasher.HashPassword(user, dto.NewPassword);
+        if (!await users.TryChangePasswordAsync(user.UserId, user.PasswordHash, newHash))
+            return Conflict(new { message = "Hesap bilgileri değişti. Sayfayı yenileyip tekrar deneyin." });
+        tokens.Revoke(User);
+        return NoContent();
+    }
+
+    private static ProfileDto ToProfile(User user) => new(user.UserId, user.FirstName, user.LastName,
+        user.Email, user.Role.RoleName, user.Department.DepartmentName, user.Phone, user.IsActive, user.CreatedAt);
 }

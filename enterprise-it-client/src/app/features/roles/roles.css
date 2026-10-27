@@ -1,0 +1,36 @@
+:host { display: block; font-family: Arial, sans-serif; color: #172b4d; }
+.roles-page { max-width: 1150px; margin: 0 auto; padding: 12px 0 28px; }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; }
+.eyebrow { font-size: 11px; letter-spacing: .15em; font-weight: 700; color: #4263a5; margin: 0 0 10px; }
+h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: -.03em; }
+.page-heading p:last-child, .muted, .count { color: #607089; font-size: 14px; line-height: 1.6; }
+button { border: 1px solid #c4cede; border-radius: 7px; padding: 10px 16px; background: white; color: #172b4d; cursor: pointer; font: inherit; font-size: 14px; }
+button:hover { background: #edf2fa; }
+button:disabled { opacity: .6; cursor: wait; }
+button:focus-visible, a:focus-visible, .table-container:focus-visible { outline: 3px solid #aac6fa; outline-offset: 3px; }
+.role-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.role-card { border: 1px solid #dce4ef; border-top: 3px solid #335fae; background: white; border-radius: 10px; padding: 22px; }
+.card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 18px; }
+.role-code { background: #edf2fc; color: #335fae; border-radius: 20px; padding: 6px 10px; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.role-id { color: #728098; font-size: 12px; }
+h2 { font-size: 19px; margin: 0 0 10px; }
+.role-card p { font-size: 14px; color: #526078; line-height: 1.7; margin: 0; overflow-wrap: anywhere; }
+.role-card .stored-description { border-top: 1px solid #edf0f5; padding-top: 12px; margin-top: 14px; }
+.matrix-section { margin-top: 30px; }
+.table-container { overflow-x: auto; border: 1px solid #dce4ef; border-radius: 10px; background: white; }
+table { border-collapse: collapse; width: 100%; text-align: left; font-size: 13px; }
+caption { padding: 16px 18px; text-align: left; color: #526078; }
+thead { background: #edf2f8; }
+th, td { border-bottom: 1px solid #e6ebf2; padding: 14px 18px; }
+thead th { color: #335fae; }
+tbody tr:last-child > * { border-bottom: 0; }
+td { white-space: nowrap; }
+td.denied { color: #7a879b; }
+.notice { padding: 18px 20px; border: 1px solid #dce4ef; border-radius: 10px; background: white; font-size: 14px; line-height: 1.7; }
+.guidance { margin-top: 24px; background: #f0f5fc; border-color: #d3e0f3; }
+.guidance h2 { font-size: 16px; }
+.guidance p:last-child { margin-bottom: 0; color: #607089; font-size: 13px; }
+.error { color: #a32626; background: #fff5f5; border-color: #ecc6c6; }
+a { color: #2459b8; }
+@media (max-width: 900px) { .role-cards { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .page-heading { align-items: start; flex-direction: column; } th, td { padding: 12px; } }

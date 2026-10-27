@@ -91,6 +91,15 @@ namespace EnterpriseIT.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateAssetDto dto)
         {
+            if (dto.PurchaseDate == default || dto.WarrantyEndDate == default || dto.WarrantyEndDate < dto.PurchaseDate)
+                return BadRequest("Satın alma ve garanti tarihlerini kontrol edin. Garanti bitişi satın alma tarihinden önce olamaz.");
+
+            dto.AssetCode = dto.AssetCode.Trim();
+            dto.Brand = dto.Brand.Trim();
+            dto.Model = dto.Model.Trim();
+            dto.SerialNumber = dto.SerialNumber.Trim();
+            dto.Status = dto.Status.Trim();
+
             var asset = await _assetRepository.GetByIdAsync(id);
 
             if (asset == null)
@@ -115,6 +124,7 @@ namespace EnterpriseIT.API.Controllers
             }
 
             _mapper.Map(dto, asset);
+            asset.UpdatedAt = DateTime.UtcNow;
 
             _assetRepository.Update(asset);
 

@@ -1,115 +1,101 @@
-﻿using AutoMapper;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using AutoMapper;
+using EnterpriseIT.API.Services;
 using EnterpriseIT.Application.DTOs.TicketAttachment;
 using EnterpriseIT.Application.Interfaces.Repositories;
 using EnterpriseIT.Domain.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.RateLimiting;
 
-namespace EnterpriseIT.API.Controllers
+namespace EnterpriseIT.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,Technician,Employee")]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+public class TicketAttachmentController(
+    ITicketAttachmentRepository attachments, ITicketRepository tickets,
+    TicketAttachmentStorage storage, IMapper mapper, ILogger<TicketAttachmentController> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class TicketAttachmentController : ControllerBase
+    private int? EmployeeUserId => User.IsInRole("Employee")
+        ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!) : null;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery, BindRequired, Range(1, int.MaxValue)] int ticketId)
     {
-        private readonly ITicketAttachmentRepository _ticketAttachmentRepository;
-        private readonly ITicketRepository _ticketRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        if (await tickets.GetByIdWithDetailsAsync(ticketId, EmployeeUserId) == null) return NotFound();
+        return Ok(mapper.Map<List<TicketAttachmentDto>>(await attachments.GetAllWithDetailsAsync(ticketId)));
+    }
 
-        public TicketAttachmentController(
-            ITicketAttachmentRepository ticketAttachmentRepository,
-            ITicketRepository ticketRepository,
-            IUserRepository userRepository,
-            IMapper mapper)
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var item = await attachments.GetByIdWithDetailsAsync(id, EmployeeUserId);
+        return item == null ? NotFound() : Ok(mapper.Map<TicketAttachmentDto>(item));
+    }
+
+    [HttpGet("{id:int}/download")]
+    public async Task<IActionResult> Download(int id)
+    {
+        var item = await attachments.GetByIdWithDetailsAsync(id, EmployeeUserId);
+        if (item == null) return NotFound();
+        var stream = storage.OpenRead(item.FilePath);
+        if (stream == null) return NotFound("Dosya depoda bulunamadı.");
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return File(stream, "application/octet-stream", item.FileName);
+    }
+
+    [HttpPost]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(TicketAttachmentStorage.MaxRequestSize)]
+    [RequestFormLimits(MultipartBodyLengthLimit = TicketAttachmentStorage.MaxFileSize)]
+    [EnableRateLimiting("attachment-upload")]
+    public async Task<IActionResult> Upload(
+        [FromForm, Range(1, int.MaxValue)] int ticketId, [Required] IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        var ticket = await tickets.GetByIdWithDetailsAsync(ticketId, EmployeeUserId);
+        if (ticket == null) return NotFound();
+        if (ticket.ClosedAt != null || ticket.Status.StatusName == "Closed")
+            return Conflict("Kapalı ticket’a dosya eklenemez.");
+
+        (string Key, string FileName) saved;
+        try { saved = await storage.SaveAsync(file, cancellationToken); }
+        catch (InvalidDataException error) { return BadRequest(error.Message); }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
-            _ticketAttachmentRepository = ticketAttachmentRepository;
-            _ticketRepository = ticketRepository;
-            _userRepository = userRepository;
-            _mapper = mapper;
+            logger.LogError(error, "Attachment could not be stored for ticket {TicketId}", ticketId);
+            return Problem("Dosya saklanamadı. Daha sonra tekrar deneyin.");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        var attachment = new TicketAttachment
         {
-            var attachments = await _ticketAttachmentRepository.GetAllWithDetailsAsync();
-
-            return Ok(_mapper.Map<List<TicketAttachmentDto>>(attachments));
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+            TicketId = ticketId, UploadedByUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
+            FileName = saved.FileName, FilePath = saved.Key
+        };
+        try
         {
-            var attachment = await _ticketAttachmentRepository.GetByIdWithDetailsAsync(id);
-
-            if (attachment == null)
+            if (!await attachments.TryAddToOpenTicketAsync(attachment, EmployeeUserId))
             {
-                return NotFound();
+                try { storage.DeleteUnreferenced(saved.Key); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                { logger.LogWarning(error, "Unreferenced attachment remains in storage: {StorageKey}", saved.Key); }
+                return Conflict("Ticket kapanmış veya değişmiş olabilir. Güncel bilgileri yükleyin.");
             }
-
-            return Ok(_mapper.Map<TicketAttachmentDto>(attachment));
         }
-
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateTicketAttachmentDto dto)
+        catch (Exception error)
         {
-            var ticket = await _ticketRepository.GetByIdAsync(dto.TicketId);
-
-            if (ticket == null)
-            {
-                return BadRequest("Geçersiz Ticket.");
-            }
-
-            var attachment = _mapper.Map<TicketAttachment>(dto);
-
-            // Giriş yapan kullanıcı
-            attachment.UploadedByUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
-
-            await _ticketAttachmentRepository.AddAsync(attachment);
-            await _ticketAttachmentRepository.SaveChangesAsync();
-
-            var createdAttachment =
-                await _ticketAttachmentRepository.GetByIdWithDetailsAsync(attachment.AttachmentId);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = attachment.AttachmentId },
-                _mapper.Map<TicketAttachmentDto>(createdAttachment));
+            // A commit failure can have an uncertain outcome. Keep the file so a committed record never loses it.
+            logger.LogError(error, "Attachment metadata save failed; storage key retained for reconciliation: {StorageKey}", saved.Key);
+            return Problem("Dosya kaydı tamamlanamadı. Tekrar yüklemeden önce ek listesini yenileyin.");
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateTicketAttachmentDto dto)
+        return CreatedAtAction(nameof(GetById), new { id = attachment.AttachmentId }, new TicketAttachmentDto
         {
-            var attachment = await _ticketAttachmentRepository.GetByIdAsync(id);
-
-            if (attachment == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(dto, attachment);
-
-            _ticketAttachmentRepository.Update(attachment);
-
-            await _ticketAttachmentRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var attachment = await _ticketAttachmentRepository.GetByIdAsync(id);
-
-            if (attachment == null)
-            {
-                return NotFound();
-            }
-
-            _ticketAttachmentRepository.Delete(attachment);
-
-            await _ticketAttachmentRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
+            AttachmentId = attachment.AttachmentId, TicketId = ticketId, TicketTitle = ticket.Title,
+            FileName = attachment.FileName, UploadedBy = User.Identity?.Name ?? "", CreatedAt = attachment.CreatedAt
+        });
     }
 }

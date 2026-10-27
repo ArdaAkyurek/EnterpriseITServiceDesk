@@ -108,4 +108,75 @@ describe('Assets', () => {
     expect(fixture.componentInstance.form.controls.assetCode.value).toBe(' IT-007 ');
     expect(fixture.componentInstance.saving()).toBe(false);
   });
+
+  const existingAsset = { assetId: 1, assetCode: 'IT-001', brand: 'Dell', model: 'Latitude', serialNumber: 'SN-001',
+    assetTypeId: 1, status: 'Available', purchaseDate: '2026-01-01T00:00:00Z', warrantyEndDate: '2028-01-01T00:00:00Z' };
+
+  function prepareEdit(status = 'Available'): void {
+    http.expectOne('/api/Asset').flush([{ ...existingAsset, status }]);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('tbody button').click();
+    http.expectOne('/api/AssetType').flush([{ assetTypeId: 1, name: 'Laptop' }]);
+    fixture.detectChanges();
+  }
+
+  it('opens the selected asset with dates formatted for date inputs', () => {
+    prepareEdit();
+    expect(fixture.componentInstance.editingId()).toBe(1);
+    expect(fixture.componentInstance.form.controls.purchaseDate.value).toBe('2026-01-01');
+    expect(fixture.componentInstance.form.controls.warrantyEndDate.value).toBe('2028-01-01');
+    expect(fixture.nativeElement.querySelector('#create-title').textContent).toContain('Demirbaşı düzenle');
+  });
+
+  it('updates using PUT and reloads the list', () => {
+    prepareEdit();
+    fixture.componentInstance.form.controls.model.setValue(' Updated Model ');
+    fixture.componentInstance.saveAsset();
+    const request = http.expectOne('/api/Asset/1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body.model).toBe('Updated Model');
+    expect(request.request.body.purchaseDate).toBe('2026-01-01T00:00:00Z');
+    fixture.componentInstance.saveAsset(); http.expectNone('/api/Asset/1');
+    request.flush(null);
+    http.expectOne('/api/Asset').flush([{ ...existingAsset, model: 'Updated Model' }]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('IT-001 kodlu demirbaş güncellendi.');
+    expect(fixture.nativeElement.querySelector('tbody').textContent).toContain('Updated Model');
+  });
+
+  it('preserves an existing status outside the standard dropdown options', () => {
+    prepareEdit('Assigned');
+    expect(fixture.nativeElement.querySelector('#asset-status').value).toBe('Assigned');
+    fixture.componentInstance.saveAsset();
+    const request = http.expectOne('/api/Asset/1');
+    expect(request.request.body.status).toBe('Assigned');
+    request.flush(null); http.expectOne('/api/Asset').flush([]);
+  });
+
+  it('retains edit data when the code is already used', () => {
+    prepareEdit();
+    fixture.componentInstance.form.controls.assetCode.setValue('IT-002');
+    fixture.componentInstance.saveAsset();
+    http.expectOne('/api/Asset/1').flush('Bu Asset Code zaten kullanılıyor.', { status: 400, statusText: 'Bad Request' });
+    expect(fixture.componentInstance.editingId()).toBe(1);
+    expect(fixture.componentInstance.form.controls.assetCode.value).toBe('IT-002');
+    expect(fixture.componentInstance.saveError()).toContain('zaten kullanılıyor');
+  });
+
+  it('handles a deleted record without discarding the edit form', () => {
+    prepareEdit(); fixture.componentInstance.saveAsset();
+    http.expectOne('/api/Asset/1').flush({}, { status: 404, statusText: 'Not Found' });
+    expect(fixture.componentInstance.saveError()).toContain('artık bulunmuyor');
+    expect(fixture.componentInstance.formOpen()).toBe(true);
+  });
+
+  it('clears editing state when cancelled and returns to create mode', () => {
+    prepareEdit(); fixture.componentInstance.closeForm();
+    http.expectNone('/api/Asset/1');
+    fixture.componentInstance.openForm();
+    expect(fixture.componentInstance.editingId()).toBeNull();
+    expect(fixture.componentInstance.form.controls.assetCode.value).toBe('');
+    expect(fixture.componentInstance.form.controls.status.value).toBe('Available');
+  });
 });

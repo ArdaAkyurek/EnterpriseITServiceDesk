@@ -1,0 +1,45 @@
+<section class="roles-page" aria-labelledby="roles-title" [attr.aria-busy]="loading()">
+  <header class="page-heading">
+    <div><p class="eyebrow">ERİŞİM VE YETKİLER</p><h1 id="roles-title">Roller</h1><p>Sistem rollerini ve her rolün mevcut erişim sınırlarını inceleyin.</p></div>
+    <button type="button" (click)="loadRoles()" [disabled]="loading()">Yenile</button>
+  </header>
+  @if (loading()) { <p class="notice" role="status">Roller yükleniyor…</p> }
+  @else if (error()) { <div class="notice error" role="alert"><p>{{ error() }}</p><button type="button" (click)="loadRoles()">Tekrar dene</button></div> }
+  @else if (!roles().length) { <p class="notice" role="status">Kayıtlı rol bulunmuyor.</p> }
+  @else {
+    <p class="count" role="status">{{ roles().length }} tanımlı rol</p>
+    <div class="role-cards">
+      @for (role of roles(); track role.roleId) {
+        <article class="role-card">
+          <div class="card-top"><span class="role-code">{{ role.roleName }}</span><span class="role-id">#{{ role.roleId }}</span></div>
+          @if (description(role.roleName); as info) {
+            <h2>{{ info.title }}</h2><p>{{ info.summary }}</p>
+          } @else {
+            <h2>Desteklenmeyen rol</h2><p>Bu rol mevcut giriş ve yetkilendirme akışında desteklenmiyor.</p>
+          }
+          @if (role.description) { <p class="stored-description">{{ role.description }}</p> }
+        </article>
+      }
+    </div>
+    <section class="matrix-section" aria-labelledby="matrix-title">
+      <h2 id="matrix-title">Yetki karşılaştırması</h2>
+      <p class="muted">Tablo mevcut uygulama davranışını açıklar; yetki kontrolü API’de uygulanır.</p>
+      <div class="table-container" tabindex="0" role="region" aria-label="Rol yetki karşılaştırması">
+        <table>
+          <caption>Mevcut ekranlar ve işlemler için rol erişimleri</caption>
+          <thead><tr><th scope="col">Ekran / İşlem</th>@for (role of roles(); track role.roleId) { <th scope="col">{{ role.roleName }}</th> }</tr></thead>
+          <tbody>
+            @for (permission of permissions; track permission.label) {
+              <tr><th scope="row">{{ permission.label }}</th>@for (role of roles(); track role.roleId) { <td [class.denied]="access(permission, role.roleName) === 'Yok'">{{ access(permission, role.roleName) }}</td> }</tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <aside class="notice guidance">
+      <h2>Kullanıcının rolünü değiştirmek mi istiyorsunuz?</h2>
+      <p><a routerLink="/dashboard/users">Users ekranından</a> kullanıcıyı düzenleyerek Admin, Technician veya Employee rolünü seçebilirsiniz. Rol değişikliği mevcut oturumu geçersiz kılar.</p>
+      <p>Bu ekran salt okunurdur. Yeni rol oluşturma, silme ve özel izin tanımlama işlemleri bu sürümde sunulmaz.</p>
+    </aside>
+  }
+</section>

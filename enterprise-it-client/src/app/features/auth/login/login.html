@@ -1,78 +1,30 @@
 <div class="login-page">
-
-  <div class="login-container">
-
-    <!-- Sol Taraf -->
-    <div class="login-left">
-
-      <h1>Enterprise IT</h1>
-
-     
-      <ul>
-        <li>Ticket Management</li>
-        <li> Asset Tracking</li>
-        <li>User Management</li>
-        <li>Reports & Analytics</li>
-      </ul>
-
-    </div>
-
-    <!-- Sağ Taraf -->
-    <form class="login-right" [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="pending()">
-
-      <div class="logo">
-        Enterprise IT
+  <main class="login-container">
+    <section class="login-left" aria-labelledby="brand-title">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">IT</span><span>Enterprise IT<span class="brand-caption">SERVICE DESK</span></span></div>
+      <div class="intro"><p class="eyebrow">KURUMSAL DESTEK PLATFORMU</p><h1 id="brand-title">IT operasyonlarınız,<br>tek bir yerde.</h1><p class="intro-description">Destek taleplerini, demirbaşları ve ekip çalışmalarını kolayca yönetin.</p>
+        <ul><li>Ticket Management</li><li>Asset Tracking</li><li>User Management</li><li>Reports &amp; Analytics</li></ul>
       </div>
-
-      <h2>Hoşgeldiniz</h2>
-      @if (sessionMessage) { <p role="status">{{ sessionMessage }}</p> }
-      @if (error()) { <p class="login-error" role="alert">{{ error() }}</p> }
-
-     
-
-      <div class="form-group">
-
-        <label for="email">Email</label>
-
-        <input
-          id="email"
-          type="email"
-          formControlName="email" autocomplete="username" required maxlength="100"
+      <p class="left-footer">Enterprise IT Service Desk</p>
+    </section>
+    <form class="login-right" [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="pending()" aria-labelledby="login-title">
+      <p class="form-eyebrow">HESABINIZA GİRİŞ YAPIN</p><h2 id="login-title">Hoş geldiniz</h2><p class="form-description">Çalışma alanınıza erişmek için hesap bilgilerinizle giriş yapın.</p>
+      @if (sessionMessage) { <p class="session-message" role="status">{{ sessionMessage }}</p> }
+      @if (error()) { <p class="login-error form-error" role="alert">{{ error() }}</p> }
+      <div class="form-group"><label for="email">E-posta adresi</label>
+        <input id="email" type="email" formControlName="email" autocomplete="username" required maxlength="100"
           [readOnly]="pending()" [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
-          aria-describedby="email-error" placeholder="E-posta adresiniz">
-        @if (form.controls.email.touched && form.controls.email.invalid) {
-          <small id="email-error" class="login-error">Geçerli bir e-posta adresi girin.</small>
-        }
-
+          aria-describedby="email-error" placeholder="ornek@sirket.com">
+        @if (form.controls.email.touched && form.controls.email.invalid) { <small id="email-error" class="login-error">Geçerli bir e-posta adresi girin.</small> }
       </div>
-
-      <div class="form-group">
-
-        <label for="password">Password</label>
-
-        <input
-          id="password"
-          type="password"
-          formControlName="password" autocomplete="current-password" required maxlength="128"
+      <div class="form-group"><label for="password">Parola</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password" required maxlength="128"
           [readOnly]="pending()" [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
-          aria-describedby="password-error" placeholder="Parolanız">
-        @if (form.controls.password.touched && form.controls.password.invalid) {
-          <small id="password-error" class="login-error">Parolanızı girin.</small>
-        }
-
+          aria-describedby="password-error" placeholder="Parolanızı girin">
+        @if (form.controls.password.touched && form.controls.password.invalid) { <small id="password-error" class="login-error">Parolanızı girin.</small> }
       </div>
-
-      <button
-    type="submit"
-    class="login-button"
-    [disabled]="pending()">
-
-    {{ pending() ? 'Giriş yapılıyor…' : 'Giriş yap' }}
-
-</button>
-
+      <button type="submit" class="login-button" [disabled]="pending()">{{ pending() ? 'Giriş yapılıyor…' : 'Giriş yap' }}<span aria-hidden="true">→</span></button>
+      <p class="account-help">Hesabınıza erişemiyorsanız IT yöneticinizle iletişime geçin.</p>
     </form>
-
-  </div>
-
+  </main>
 </div>

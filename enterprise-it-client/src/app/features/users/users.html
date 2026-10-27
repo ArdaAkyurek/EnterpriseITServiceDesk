@@ -1,0 +1,95 @@
+<section aria-labelledby="users-title" [attr.aria-busy]="loading()">
+  <header class="assets-header">
+    <div><h1 id="users-title">Kullanıcılar</h1><p>Kullanıcı bilgilerini, departmanları ve erişim rollerini yönetin.</p></div>
+    <div class="actions">
+      <button type="button" (click)="loadData()" [disabled]="loading() || saving()">Yenile</button>
+      <button type="button" class="primary" (click)="openCreate()" [disabled]="loading() || saving() || formOpen() || !!error()">Yeni kullanıcı</button>
+    </div>
+  </header>
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+  @if (formOpen()) {
+    <form class="asset-form" [formGroup]="form" (ngSubmit)="saveUser()" aria-labelledby="user-form-title" [attr.aria-busy]="saving()">
+      <h2 id="user-form-title">{{ editingId() === null ? 'Yeni kullanıcı' : 'Kullanıcıyı düzenle' }}</h2>
+      @if (saveError()) { <p class="message error" role="alert">{{ saveError() }}</p> }
+      @if (!roles().length || !departments().length) { <p class="message error" role="alert">Kullanıcı kaydetmek için rol ve departman tanımları gereklidir.</p> }
+      @if (isEditingSelf()) { <p>Kendi hesabınızın Admin rolünü kaldıramaz veya hesabınızı pasifleştiremezsiniz.</p> }
+      <fieldset [disabled]="saving()">
+        <legend class="sr-only">Kullanıcı bilgileri</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="user-first-name">Ad</label>
+            <input id="user-first-name" formControlName="firstName" required maxlength="50" autocomplete="given-name" [attr.aria-invalid]="invalid('firstName')" aria-describedby="first-name-error">
+            @if (invalid('firstName')) { <small id="first-name-error">Ad girin (en fazla 50 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="user-last-name">Soyad</label>
+            <input id="user-last-name" formControlName="lastName" required maxlength="50" autocomplete="family-name" [attr.aria-invalid]="invalid('lastName')" aria-describedby="last-name-error">
+            @if (invalid('lastName')) { <small id="last-name-error">Soyad girin (en fazla 50 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="user-email">E-posta</label>
+            <input id="user-email" type="email" formControlName="email" required maxlength="100" autocomplete="off" [attr.aria-invalid]="invalid('email')" aria-describedby="user-email-error">
+            @if (invalid('email')) { <small id="user-email-error">Geçerli bir e-posta girin (en fazla 100 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="user-phone">Telefon (isteğe bağlı)</label>
+            <input id="user-phone" type="tel" formControlName="phone" maxlength="20" autocomplete="tel" [attr.aria-invalid]="invalid('phone')" aria-describedby="phone-error">
+            @if (invalid('phone')) { <small id="phone-error">Telefon en fazla 20 karakter olabilir.</small> }
+          </div>
+          <div class="field">
+            <label for="user-department">Departman</label>
+            <select id="user-department" formControlName="departmentId" required [attr.aria-invalid]="invalid('departmentId')" aria-describedby="department-error">
+              <option [ngValue]="0">Departman seçin</option>
+              @for (department of departments(); track department.departmentId) { <option [ngValue]="department.departmentId">{{ department.departmentName }}</option> }
+            </select>
+            @if (invalid('departmentId')) { <small id="department-error">Departman seçin.</small> }
+          </div>
+          <div class="field">
+            <label for="user-role">Rol</label>
+            <select id="user-role" formControlName="roleId" required [attr.aria-invalid]="invalid('roleId')" aria-describedby="role-error">
+              <option [ngValue]="0">Rol seçin</option>
+              @for (role of roles(); track role.roleId) { <option [ngValue]="role.roleId">{{ role.roleName }}</option> }
+            </select>
+            @if (invalid('roleId')) { <small id="role-error">Rol seçin.</small> }
+          </div>
+          <div class="field">
+            <label for="user-password">{{ editingId() === null ? 'İlk parola' : 'Yeni parola (isteğe bağlı)' }}</label>
+            <input id="user-password" type="password" formControlName="password" autocomplete="new-password" maxlength="128" [attr.aria-invalid]="invalid('password')" aria-describedby="user-password-help user-password-error">
+            <span id="user-password-help" class="help">{{ editingId() === null ? '12–128 karakterlik bir parola belirleyin.' : 'Boş bırakırsanız mevcut parola korunur. Kendi parolanızı değiştirirseniz yeniden giriş yapmanız gerekir.' }}</span>
+            @if (invalid('password')) { <small id="user-password-error">Parola 12–128 karakter olmalıdır.</small> }
+          </div>
+          <div class="field active-field">
+            <label class="checkbox-label" for="user-active"><input id="user-active" type="checkbox" formControlName="isActive"> Hesap aktif</label>
+            <span class="help">Pasif hesaplar giriş yapamaz; mevcut oturumları sonraki istekte reddedilir.</span>
+          </div>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="saving() || loading() || !roles().length || !departments().length">{{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}</button>
+        <button type="button" (click)="closeForm()" [disabled]="saving()">Vazgeç</button>
+      </div>
+    </form>
+  }
+
+  @if (loading()) { <p class="message" role="status">Kullanıcılar yükleniyor…</p> }
+  @else if (error()) { <div class="message error" role="alert"><p>{{ error() }}</p><button type="button" (click)="loadData()">Tekrar dene</button></div> }
+  @else if (!users().length) { <p class="message" role="status">Henüz kullanıcı bulunmuyor.</p> }
+  @else {
+    <p class="count" role="status">Toplam {{ users().length }} kullanıcı</p>
+    <div class="table-container" role="region" aria-label="Kullanıcı listesi" tabindex="0">
+      <table>
+        <caption>Kurumsal kullanıcılar</caption>
+        <thead><tr><th scope="col">Ad Soyad</th><th scope="col">E-posta</th><th scope="col">Telefon</th><th scope="col">Departman</th><th scope="col">Rol</th><th scope="col">Durum</th><th scope="col">İşlem</th></tr></thead>
+        <tbody>
+          @for (user of users(); track user.userId) {
+            <tr>
+              <th scope="row">{{ user.firstName }} {{ user.lastName }}</th><td>{{ user.email }}</td><td>{{ user.phone || 'Belirtilmedi' }}</td>
+              <td>{{ departmentName(user.departmentId) }}</td><td>{{ roleName(user.roleId) }}</td><td><span class="status">{{ user.isActive ? 'Aktif' : 'Pasif' }}</span></td>
+              <td><button type="button" (click)="openEdit(user)" [disabled]="saving() || formOpen()" [attr.aria-label]="user.firstName + ' ' + user.lastName + ' kullanıcısını düzenle'">Düzenle</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

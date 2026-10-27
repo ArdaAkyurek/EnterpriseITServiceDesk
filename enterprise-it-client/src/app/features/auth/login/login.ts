@@ -20,8 +20,10 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   readonly pending = signal(false);
   readonly error = signal('');
-  readonly sessionMessage = inject(ActivatedRoute).snapshot.queryParamMap.has('reason')
-    ? 'Oturumunuzu doğrulayamadık. Lütfen tekrar giriş yapın.' : '';
+  private readonly sessionReason = inject(ActivatedRoute).snapshot.queryParamMap.get('reason');
+  readonly sessionMessage = this.sessionReason === 'password-changed'
+    ? 'Parolanız değiştirildi. Yeni parolanızla giriş yapın.'
+    : this.sessionReason ? 'Oturumunuzu doğrulayamadık. Lütfen tekrar giriş yapın.' : '';
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
     password: ['', [Validators.required, Validators.maxLength(128)]]

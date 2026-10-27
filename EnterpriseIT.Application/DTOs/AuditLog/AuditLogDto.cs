@@ -17,6 +17,7 @@ namespace EnterpriseIT.Application.DTOs.AuditLog
         public int EntityId { get; set; }
 
         public string User { get; set; } = string.Empty;
+        public int UserId { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

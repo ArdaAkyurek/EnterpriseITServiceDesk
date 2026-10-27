@@ -6,7 +6,7 @@
     </div>
     <div class="actions">
       <button type="button" (click)="loadAssets()" [disabled]="loading() || saving()">Yenile</button>
-      <button type="button" class="primary" (click)="openForm()" [disabled]="formOpen()">Yeni demirbaş ekle</button>
+      <button type="button" class="primary" (click)="openForm()" [disabled]="formOpen() || loading() || saving()">Yeni demirbaş ekle</button>
     </div>
   </header>
 
@@ -16,7 +16,7 @@
 
   @if (formOpen()) {
     <form class="asset-form" [formGroup]="form" (ngSubmit)="saveAsset()" aria-labelledby="create-title" [attr.aria-busy]="saving()">
-      <h2 id="create-title">Yeni demirbaş</h2>
+      <h2 id="create-title">{{ editingId() === null ? 'Yeni demirbaş' : 'Demirbaşı düzenle' }}</h2>
       <p>Tüm alanlar zorunludur.</p>
       @if (saveError()) { <p class="error message" role="alert">{{ saveError() }}</p> }
       @if (typesLoading()) { <p role="status">Demirbaş türleri yükleniyor…</p> }
@@ -66,6 +66,9 @@
               <option value="In Use">Kullanımda</option>
               <option value="Maintenance">Bakımda</option>
               <option value="Retired">Kullanım dışı</option>
+              @if (editingId() !== null && !knownStatuses.includes(form.controls.status.value)) {
+                <option [value]="form.controls.status.value">{{ form.controls.status.value }}</option>
+              }
             </select>
           </div>
           <div class="field">
@@ -82,7 +85,7 @@
         </div>
       </fieldset>
       <div class="actions">
-        <button type="submit" class="primary" [disabled]="saving() || typesLoading() || !assetTypes().length">{{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}</button>
+        <button type="submit" class="primary" [disabled]="saving() || loading() || typesLoading() || !assetTypes().length">{{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}</button>
         <button type="button" (click)="closeForm()" [disabled]="saving()">Vazgeç</button>
       </div>
     </form>
@@ -110,6 +113,7 @@
             <th scope="col">Durum</th>
             <th scope="col">Satın alma tarihi</th>
             <th scope="col">Garanti bitişi</th>
+            <th scope="col">İşlem</th>
           </tr>
         </thead>
         <tbody>
@@ -121,6 +125,7 @@
               <td><span class="status">{{ asset.status || 'Belirtilmedi' }}</span></td>
               <td>{{ asset.purchaseDate | date:'dd.MM.yyyy' }}</td>
               <td>{{ asset.warrantyEndDate | date:'dd.MM.yyyy' }}</td>
+              <td><button type="button" (click)="openForm(asset)" [disabled]="saving() || formOpen() || loading()" [attr.aria-label]="asset.assetCode + ' demirbaşını düzenle'">Düzenle</button></td>
             </tr>
           }
         </tbody>

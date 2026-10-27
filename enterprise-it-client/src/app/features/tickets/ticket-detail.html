@@ -1,0 +1,80 @@
+<section aria-labelledby="detail-title" [attr.aria-busy]="loading()">
+  <header class="assets-header">
+    <h1 id="detail-title">Ticket detayı</h1>
+    <div class="actions"><a routerLink="/dashboard/tickets">Ticket listesine dön</a><button type="button" (click)="reload()" [disabled]="loading() || saving()">Yenile</button></div>
+  </header>
+  @if (actionError()) { <p class="message error" role="alert">{{ actionError() }}</p> }
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+  @if (loading()) { <p class="message" role="status">Ticket yükleniyor…</p> }
+  @else if (error()) { <div class="message error" role="alert"><p>{{ error() }}</p><button type="button" (click)="reload()">Tekrar dene</button></div> }
+  @else if (ticket(); as detail) {
+    <article class="detail-card">
+      <h2>#{{ detail.ticketId }} · {{ detail.title }}</h2>
+      <dl>
+        <div><dt>Durum</dt><dd><span class="status">{{ detail.status }}</span></dd></div>
+        <div><dt>Öncelik</dt><dd>{{ detail.priority }}</dd></div>
+        <div><dt>Kategori</dt><dd>{{ detail.category }}</dd></div>
+        <div><dt>Oluşturan</dt><dd>{{ detail.createdBy }}</dd></div>
+        <div><dt>Atanan teknisyen</dt><dd>{{ detail.assignedTo || 'Henüz atanmadı' }}</dd></div>
+        <div><dt>Demirbaş</dt><dd>{{ detail.asset || 'Belirtilmedi' }}</dd></div>
+        <div><dt>Oluşturulma</dt><dd>{{ detail.createdAt | date:'dd.MM.yyyy HH:mm' }}</dd></div>
+        <div><dt>Son güncelleme</dt><dd>{{ (detail.updatedAt | date:'dd.MM.yyyy HH:mm') || 'Henüz güncellenmedi' }}</dd></div>
+        @if (detail.closedAt) { <div><dt>Kapanış</dt><dd>{{ detail.closedAt | date:'dd.MM.yyyy HH:mm' }}</dd></div> }
+      </dl>
+      <h3>Açıklama</h3><p class="description">{{ detail.description }}</p>
+    </article>
+    @if (canChangeStatus()) {
+      <section class="detail-card" aria-labelledby="ticket-status-title" [attr.aria-busy]="saving()">
+        <h2 id="ticket-status-title">Çalışma durumu</h2>
+        @if (detail.status === 'Open') {
+          @if (detail.assignedToUserId == null) { <p>İşe başlamadan önce ticket’ı aktif bir teknisyene atayın.</p> }
+          @else { <p>İşe başladığınızda durum <strong>In Progress</strong> olarak güncellenir.</p> }
+          <button type="button" class="primary" (click)="changeStatus('In Progress')" [disabled]="saving() || detail.assignedToUserId == null">{{ saving() ? 'İşleniyor…' : 'İşe başla' }}</button>
+        } @else if (detail.status === 'In Progress') {
+          @if (!closeRequested()) {
+            <p>Çalışma tamamlandıysa ticket’ı kapatabilirsiniz. Kapanış tarihi otomatik kaydedilir.</p>
+            <button type="button" (click)="closeRequested.set(true)" [disabled]="saving()">Ticket’ı kapat</button>
+          } @else {
+            <div class="close-confirmation" role="group" aria-labelledby="close-confirm-title">
+              <h3 id="close-confirm-title">Ticket kapatılsın mı?</h3>
+              <p>Kapalı ticket’a yeniden atama veya durum değişikliği yapılamaz.</p>
+              <div class="actions">
+                <button type="button" class="primary" (click)="changeStatus('Closed')" [disabled]="saving()">{{ saving() ? 'Kapatılıyor…' : 'Evet, ticket’ı kapat' }}</button>
+                <button type="button" (click)="closeRequested.set(false)" [disabled]="saving()">Vazgeç</button>
+              </div>
+            </div>
+          }
+        }
+      </section>
+    }
+    @if (closed()) { <p class="message" role="status">Bu ticket kapalı. Atama işlemleri kullanılamaz.</p> }
+    @else if (auth.hasRole('Admin')) {
+      <section class="detail-card" aria-labelledby="assignment-title" [attr.aria-busy]="saving()">
+        <h2 id="assignment-title">Teknisyene ata</h2>
+        @if (techniciansLoading()) { <p role="status">Teknisyenler yükleniyor…</p> }
+        @else if (techniciansError()) { <div class="message error" role="alert"><p>{{ techniciansError() }}</p><button type="button" (click)="loadTechnicians()">Tekrar dene</button></div> }
+        @else if (!technicians().length) { <p role="status">Aktif teknisyen bulunmuyor. Users ekranından aktif bir Technician hesabı tanımlayın.</p> }
+        @else {
+          <fieldset [disabled]="saving()">
+          <legend class="sr-only">Teknisyen ataması</legend>
+          <label for="assignee">Aktif teknisyen</label>
+          <select id="assignee" [formControl]="assignee" [attr.aria-invalid]="assignee.touched && assignee.invalid" aria-describedby="assignee-help">
+            <option [ngValue]="0">Teknisyen seçin</option>
+            @for (technician of technicians(); track technician.userId) { <option [ngValue]="technician.userId">{{ technician.fullName }}</option> }
+          </select>
+          <p id="assignee-help">Yalnızca aktif Technician hesaplarına atama yapılabilir.</p>
+          <button type="button" class="primary" (click)="assign()" [disabled]="saving() || assignee.invalid || assignee.value === detail.assignedToUserId">{{ saving() ? 'Atanıyor…' : 'Teknisyene ata' }}</button>
+          </fieldset>
+        }
+      </section>
+    } @else if (canClaim()) {
+      <section class="detail-card" aria-labelledby="claim-title">
+        <h2 id="claim-title">Ticket’ı üzerinize alın</h2>
+        <p>Bu ticket henüz bir teknisyene atanmadı.</p>
+        <button type="button" class="primary" (click)="claim()" [disabled]="saving()">{{ saving() ? 'İşleniyor…' : 'Üzerime al' }}</button>
+      </section>
+    }
+    <app-ticket-comments [ticketId]="detail.ticketId" [closed]="closed()" [busy]="saving()" (ticketChanged)="onCommentConflict($event)" />
+    <app-ticket-attachments [ticketId]="detail.ticketId" [closed]="closed()" [busy]="saving()" (ticketChanged)="onCommentConflict($event)" />
+  }
+</section>

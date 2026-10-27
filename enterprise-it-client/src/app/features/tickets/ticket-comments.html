@@ -1,0 +1,31 @@
+<section class="comments-card" aria-labelledby="comments-title" [attr.aria-busy]="loading() || posting()">
+  <header class="comments-heading"><div><h2 id="comments-title">Yorumlar</h2><p>Destek talebiyle ilgili gelişmeleri buradan paylaşın.</p></div><button type="button" (click)="loadComments()" [disabled]="loading() || posting() || busy">Yorumları yenile</button></header>
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+  @if (postError()) { <p class="message error" role="alert">{{ postError() }}</p> }
+  @if (loading()) { <p role="status">Yorumlar yükleniyor…</p> }
+  @else if (error()) { <div class="message error" role="alert"><p>{{ error() }}</p><button type="button" (click)="loadComments()">Tekrar dene</button></div> }
+  @else if (!comments().length) { <p class="empty-comments" role="status">Henüz yorum bulunmuyor.</p> }
+  @else {
+    <ol class="comment-list" aria-label="Ticket yorum geçmişi">
+      @for (comment of comments(); track comment.commentId) {
+        <li class="comment">
+          <div class="comment-meta"><strong>{{ comment.user }}</strong><time [attr.datetime]="comment.createdAt">{{ comment.createdAt.startsWith('0001-') ? 'Tarih belirtilmedi' : (comment.createdAt | date:'dd.MM.yyyy HH:mm') }}</time></div>
+          <p class="comment-text">{{ comment.comment }}</p>
+        </li>
+      }
+    </ol>
+  }
+  @if (closed) { <p class="closed-note" role="status">Bu ticket kapalı. Geçmiş yorumları okuyabilirsiniz; yeni yorum eklenemez.</p> }
+  @else {
+    <form [formGroup]="form" (ngSubmit)="sendComment()" class="comment-form">
+      <fieldset [disabled]="posting() || loading() || busy || !!error()">
+        <legend class="sr-only">Yeni yorum gönder</legend>
+        <label for="ticket-comment">Yeni yorum</label>
+        <textarea id="ticket-comment" formControlName="comment" rows="4" maxlength="1000" required placeholder="Talep ile ilgili mesajınızı yazın…" [attr.aria-invalid]="form.controls.comment.touched && form.controls.comment.invalid" aria-describedby="comment-help comment-error"></textarea>
+        <p id="comment-help" class="comment-help">{{ form.controls.comment.value.length }} / 1000 karakter · Yorumunuz talebin sahibi ve destek ekibi tarafından görülebilir.</p>
+        @if (form.controls.comment.touched && form.controls.comment.invalid) { <small id="comment-error">1–1000 karakterlik bir yorum girin. Yalnızca boşluk kullanılamaz.</small> }
+        <button type="submit" class="primary" [disabled]="posting() || loading() || busy || !!error()">{{ posting() ? 'Gönderiliyor…' : 'Yorumu gönder' }}</button>
+      </fieldset>
+    </form>
+  }
+</section>

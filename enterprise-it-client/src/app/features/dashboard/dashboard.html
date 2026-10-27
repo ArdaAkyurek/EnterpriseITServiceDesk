@@ -1,3 +1,48 @@
-<h1>Dashboard</h1>
-
-<p>Enterprise IT Service Desk'e hoş geldiniz.</p>
+<section class="dashboard" aria-labelledby="dashboard-title" [attr.aria-busy]="loading()">
+  <header class="page-header">
+    <div><p class="eyebrow">SERVICE DESK · GENEL BAKIŞ</p><h1 id="dashboard-title">Merhaba, {{ auth.user()?.firstName || 'hoş geldiniz' }}</h1><p>Destek taleplerini ve güncel iş durumunu buradan takip edin.</p></div>
+    <button type="button" class="refresh" (click)="load()" [disabled]="loading()">{{ loading() ? 'Yenileniyor…' : 'Verileri yenile' }}</button>
+  </header>
+  <nav class="quick-links" aria-label="Hızlı erişim">
+    <a class="primary-link" routerLink="/dashboard/tickets">{{ auth.hasRole('Employee') ? 'Taleplerime git' : 'Ticket listesine git' }} <span aria-hidden="true">↗</span></a>
+    @if (auth.hasRole('Admin', 'Technician')) { <a routerLink="/dashboard/assets">Demirbaşlar</a> }
+    @if (auth.hasRole('Admin')) { <a routerLink="/dashboard/users">Kullanıcı yönetimi</a> }
+    <a routerLink="/dashboard/profile">Profilim</a>
+  </nav>
+  @if (error()) { <div class="error" role="alert"><p>{{ error() }}</p><button type="button" (click)="load()" [disabled]="loading()">Tekrar dene</button>@if (summary()) { <p>Gösterilen veriler son başarılı yüklemeye aittir.</p> }</div> }
+  @if (loading() && !summary()) { <p class="loading" role="status">Güncel özet hazırlanıyor…</p> }
+  @if (summary(); as data) {
+    <div class="scope"><span class="scope-label">{{ scopeLabel() }}</span><span>Son güncelleme: {{ data.generatedAt | date:'dd.MM.yyyy HH:mm' }}</span></div>
+    <div class="metrics">
+      <article class="metric"><span>Toplam</span><strong>{{ data.total }}</strong><small>{{ scopeLabel() }}</small></article>
+      <article class="metric blue"><span>Açık</span><strong>{{ data.open }}</strong><small>İşleme alınmayı bekliyor</small></article>
+      <article class="metric amber"><span>İşlemde</span><strong>{{ data.inProgress }}</strong><small>Çalışma devam ediyor</small></article>
+      <article class="metric green"><span>Kapalı</span><strong>{{ data.closed }}</strong><small>Tamamlanan talepler</small></article>
+    </div>
+    @if (data.unassignedActiveCount !== null) {
+      <aside class="queue"><div><strong>{{ data.unassignedActiveCount }} atanmamış aktif ticket</strong><p>Tüm destek kuyruğu · Atama ve üzerinize alma işlemleri ticket detayından yapılır.</p></div><a routerLink="/dashboard/tickets">Çalışma listelerini aç →</a></aside>
+    }
+    <div class="breakdowns">
+      <article class="panel"><h2>Durum dağılımı</h2><p class="muted">{{ scopeLabel() }} · Tüm zamanlar</p>
+        @if (data.total > 0) {
+          <div class="stack" role="img" [attr.aria-label]="'Toplam ' + data.total + ' ticket: ' + data.open + ' açık, ' + data.inProgress + ' işlemde, ' + data.closed + ' kapalı, ' + data.other + ' diğer'">
+            @for (status of statuses(); track status.label) { @if (status.count) { <span [style.width.%]="status.count / data.total * 100" [style.background]="status.color"></span> } }
+          </div>
+          <ul class="legend">@for (status of statuses(); track status.label) { <li><span class="dot" [style.background]="status.color"></span><span>{{ status.label }}</span><strong>{{ status.count }}</strong></li> }</ul>
+        } @else { <p class="empty">Bu kapsamda henüz ticket bulunmuyor.</p> }
+      </article>
+      <article class="panel"><h2>Aktif taleplerin öncelikleri</h2><p class="muted">{{ scopeLabel() }} · {{ activeCount() }} aktif ticket</p>
+        @if (data.activeByPriority.length) {
+          <ul class="priorities">@for (priority of data.activeByPriority; track priority.priority) { <li><div><span>{{ priority.priority }}</span><strong>{{ priority.count }}</strong></div><div class="track" aria-hidden="true"><span [style.width.%]="activeCount() ? priority.count / activeCount() * 100 : 0"></span></div></li> }</ul>
+        } @else { <p class="empty">Aktif ticket bulunmuyor.</p> }
+      </article>
+    </div>
+    <article class="panel recent"><header><div><h2>Son oluşturulan ticket’lar</h2><p class="muted">{{ scopeLabel() }} · En yeni 5 kayıt</p></div><a routerLink="/dashboard/tickets">Listeye git →</a></header>
+      @if (data.recentTickets.length) {
+        <div class="table-scroll"><table><thead><tr><th>Ticket</th><th>Durum</th><th>Öncelik</th><th>Atanan</th><th>Oluşturulma</th></tr></thead><tbody>
+          @for (ticket of data.recentTickets; track ticket.ticketId) { <tr><td><a [routerLink]="['/dashboard/tickets', ticket.ticketId]">#{{ ticket.ticketId }} · {{ ticket.title }}</a></td><td><span class="status" [class.closed]="ticket.status === 'Closed'" [class.in-progress]="ticket.status === 'In Progress'">{{ statusLabel(ticket.status) }}</span></td><td>{{ ticket.priority }}</td><td>{{ ticket.assignedTo || 'Henüz atanmadı' }}</td><td>{{ ticket.createdAt | date:'dd.MM.yyyy HH:mm' }}</td></tr> }
+        </tbody></table></div>
+      } @else { <p class="empty">Henüz gösterilecek ticket yok. Ticket listesinden yeni destek talebi oluşturabilirsiniz.</p> }
+    </article>
+  }
+</section>

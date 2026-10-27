@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth';
 import { authInterceptor } from './auth.interceptor';
 import { authGuard } from './auth.guard';
+import { routes } from '../app.routes';
 
 describe('Authentication', () => {
   let auth: AuthService;
@@ -76,5 +77,38 @@ describe('Authentication', () => {
     expect(redirect instanceof UrlTree).toBe(true);
     expect(String(redirect)).toBe('/dashboard');
     expect(auth.hasRole('Admin', 'Technician')).toBe(false);
+  });
+
+  it.each(['Admin', 'Technician', 'Employee'])('enforces the Roles route for %s', role => {
+    login();
+    const roleRoute = routes.find(route => route.path === 'dashboard')!.children!.find(route => route.path === 'roles')!;
+    expect(roleRoute.data?.['roles']).toEqual(['Admin']);
+    const result = TestBed.runInInjectionContext(() => authGuard({ data: roleRoute.data } as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+    let decision: unknown;
+    (result as Observable<unknown>).subscribe(value => decision = value);
+    http.expectOne('/api/Auth/me').flush({ ...user, role });
+    expect(role === 'Admin' ? decision === true : String(decision) === '/dashboard').toBe(true);
+  });
+
+  it.each(['Admin', 'Technician', 'Employee'])('enforces the Departments route for %s', role => {
+    login();
+    const departmentRoute = routes.find(route => route.path === 'dashboard')!.children!.find(route => route.path === 'departments')!;
+    expect(departmentRoute.data?.['roles']).toEqual(['Admin']);
+    const result = TestBed.runInInjectionContext(() => authGuard({ data: departmentRoute.data } as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+    let decision: unknown;
+    (result as Observable<unknown>).subscribe(value => decision = value);
+    http.expectOne('/api/Auth/me').flush({ ...user, role });
+    expect(role === 'Admin' ? decision === true : String(decision) === '/dashboard').toBe(true);
+  });
+
+  it.each(['Admin', 'Technician', 'Employee'])('enforces the Audit route for %s', role => {
+    login();
+    const auditRoute = routes.find(route => route.path === 'dashboard')!.children!.find(route => route.path === 'audit-logs')!;
+    expect(auditRoute.data?.['roles']).toEqual(['Admin']);
+    const result = TestBed.runInInjectionContext(() => authGuard({ data: auditRoute.data } as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+    let decision: unknown;
+    (result as Observable<unknown>).subscribe(value => decision = value);
+    http.expectOne('/api/Auth/me').flush({ ...user, role });
+    expect(role === 'Admin' ? decision === true : String(decision) === '/dashboard').toBe(true);
   });
 });

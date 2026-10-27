@@ -9,7 +9,7 @@ namespace EnterpriseIT.Application.Interfaces.Repositories
 {
     public interface IAuditLogRepository : IGenericRepository<AuditLog>
     {
-        Task<List<AuditLog>> GetAllWithDetailsAsync();
+        Task<List<AuditLog>> GetAllWithDetailsAsync(int page = 1);
 
         Task<AuditLog?> GetByIdWithDetailsAsync(int id);
     }

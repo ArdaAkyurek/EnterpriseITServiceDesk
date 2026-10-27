@@ -10,8 +10,10 @@ namespace EnterpriseIT.Application.Interfaces.Repositories
     public interface INotificationRepository
         : IGenericRepository<Notification>
     {
-        Task<List<Notification>> GetAllWithDetailsAsync();
+        Task<List<Notification>> GetAllWithDetailsAsync(int userId, int page = 1);
 
-        Task<Notification?> GetByIdWithDetailsAsync(int id);
+        Task<Notification?> GetByIdWithDetailsAsync(int id, int userId);
+
+        Task<int> GetUnreadCountAsync(int userId);
     }
 }

@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
-import { AuthUser, LoginResponse, UserRole } from '../models/auth';
+import { AuthUser, ChangePassword, LoginResponse, UserProfile, UserRole } from '../models/auth';
 
 type StoredSession = Pick<LoginResponse, 'accessToken' | 'expiresAt'>;
 
@@ -55,6 +55,16 @@ export class AuthService {
 
   logout() {
     return this.http.post<void>('/api/Auth/logout', {}).pipe(tap(() => this.clearSession()));
+  }
+
+  getProfile() { return this.http.get<UserProfile>('/api/Auth/profile'); }
+
+  updateProfile(phone: string | null) {
+    return this.http.put<UserProfile>('/api/Auth/profile', { phone });
+  }
+
+  changePassword(passwords: ChangePassword) {
+    return this.http.put<void>('/api/Auth/password', passwords).pipe(tap(() => this.clearSession()));
   }
 
   clearSession(): void {

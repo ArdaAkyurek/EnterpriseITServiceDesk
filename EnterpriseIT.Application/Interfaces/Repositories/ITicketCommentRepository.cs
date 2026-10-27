@@ -10,8 +10,9 @@ namespace EnterpriseIT.Application.Interfaces.Repositories
     public interface ITicketCommentRepository
     : IGenericRepository<TicketComment>
     {
-        Task<List<TicketComment>> GetAllWithDetailsAsync();
+        Task<List<TicketComment>> GetAllWithDetailsAsync(int ticketId);
 
-        Task<TicketComment?> GetByIdWithDetailsAsync(int id);
+        Task<TicketComment?> GetByIdWithDetailsAsync(int id, int? createdByUserId = null);
+        Task<bool> TryAddToOpenTicketAsync(TicketComment comment, int? createdByUserId = null);
     }
 }

@@ -1,0 +1,25 @@
+<section class="attachment-card" aria-labelledby="attachments-title" [attr.aria-busy]="loading() || uploading()">
+  <header><h2 id="attachments-title">Dosya ekleri</h2><button type="button" (click)="load()" [disabled]="loading() || uploading() || busy">Yenile</button></header>
+  @if (error()) { <p class="message error" role="alert">{{ error() }}</p> }
+  @if (actionError()) { <p class="message error" role="alert">{{ actionError() }}</p> }
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+  @if (loading()) { <p role="status">Dosya ekleri yükleniyor…</p> }
+  @else if (!error() && !attachments().length) { <p>Bu ticket’a henüz dosya eklenmemiş.</p> }
+  <ul>
+    @for (item of attachments(); track item.attachmentId) {
+      <li><div><strong>{{ item.fileName }}</strong><p>{{ item.uploadedBy }} · {{ item.createdAt | date:'dd.MM.yyyy HH:mm' }}</p></div>
+        <button type="button" (click)="download(item)" [disabled]="downloadingId() !== null">{{ downloadingId() === item.attachmentId ? 'İndiriliyor…' : 'İndir' }}</button>
+      </li>
+    }
+  </ul>
+  @if (closed) { <p>Ticket kapalı. Mevcut ekleri indirebilirsiniz; yeni dosya eklenemez.</p> }
+  @else {
+    <div class="upload-form">
+      <label for="ticket-file">Dosya seçin</label>
+      <input #fileInput id="ticket-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" (change)="selectFile($event)" [disabled]="uploading() || busy" aria-describedby="file-help" />
+      <p id="file-help">PDF, PNG, JPG veya UTF-8 TXT · En fazla 10 MB. Dosyalar indirilir; önizleme açılmaz.</p>
+      @if (selectedFile(); as file) { <p>Seçilen: {{ file.name }} · {{ (file.size / 1024).toFixed(1) }} KB</p> }
+      <button type="button" class="primary" (click)="upload()" [disabled]="!selectedFile() || uploading() || loading() || busy || !!error()">{{ uploading() ? 'Yükleniyor…' : 'Dosyayı yükle' }}</button>
+    </div>
+  }
+</section>

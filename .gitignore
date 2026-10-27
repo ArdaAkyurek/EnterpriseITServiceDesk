@@ -14,3 +14,17 @@ node_modules/
 
 # Logs
 *.log
+
+# Private ticket attachment files
+EnterpriseIT.API/App_Data/
+
+# Local credentials, environment overrides and private keys
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+*.pem
+*.key
+*.pfx
+*.p12

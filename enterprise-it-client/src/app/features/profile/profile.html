@@ -1,0 +1,59 @@
+<section class="profile-page" aria-labelledby="profile-title" [attr.aria-busy]="loading()">
+  <header class="page-heading"><p class="eyebrow">HESABIM</p><h1 id="profile-title">Profilim</h1><p>Hesap bilgilerinizi görüntüleyin, iletişim ve güvenlik ayarlarınızı yönetin.</p></header>
+  @if (loading()) { <p class="notice" role="status">Profiliniz yükleniyor…</p> }
+  @else if (error()) { <div class="notice error" role="alert"><p>{{ error() }}</p><button type="button" (click)="loadProfile()">Tekrar dene</button></div> }
+  @else if (profile(); as user) {
+    <div class="profile-grid">
+      <aside class="card identity" aria-labelledby="identity-title">
+        <div class="avatar" aria-hidden="true">{{ initials() }}</div>
+        <h2 id="identity-title">{{ user.firstName }} {{ user.lastName }}</h2>
+        <p class="email">{{ user.email }}</p>
+        <div class="badges"><span class="role-badge">{{ roleLabel() }}</span><span class="status-badge">{{ user.isActive ? 'Aktif hesap' : 'Pasif hesap' }}</span></div>
+        <dl>
+          <div><dt>Departman</dt><dd>{{ user.department }}</dd></div>
+          <div><dt>Kullanıcı numarası</dt><dd>#{{ user.userId }}</dd></div>
+          <div><dt>Hesap oluşturulma</dt><dd>{{ user.createdAt.startsWith('0001-') ? 'Belirtilmedi' : (user.createdAt | date:'dd.MM.yyyy') }}</dd></div>
+        </dl>
+        <p class="help identity-note">Ad, e-posta, departman ve rol değişikliği için yöneticinizle iletişime geçin.</p>
+      </aside>
+      <div class="settings">
+        <section class="card" aria-labelledby="contact-title">
+          <div class="section-heading"><span class="section-number" aria-hidden="true">01</span><div><h2 id="contact-title">İletişim bilgileri</h2><p>Size ulaşılabilecek telefon numarasını güncel tutun.</p></div></div>
+          @if (phoneMessage()) { <p class="notice success" role="status">{{ phoneMessage() }}</p> }
+          @if (phoneError()) { <p class="notice error" role="alert">{{ phoneError() }}</p> }
+          <form [formGroup]="phoneForm" (ngSubmit)="savePhone()" [attr.aria-busy]="savingPhone()">
+            <fieldset [disabled]="savingPhone() || savingPassword()">
+              <legend class="sr-only">İletişim bilgilerini güncelle</legend>
+              <label for="profile-phone">Telefon numarası <span class="optional">(isteğe bağlı)</span></label>
+              <input id="profile-phone" type="tel" formControlName="phone" maxlength="20" autocomplete="tel" placeholder="Örn. +90 5xx xxx xx xx" [attr.aria-invalid]="phoneForm.controls.phone.touched && phoneForm.controls.phone.invalid" aria-describedby="phone-help phone-error">
+              <p class="help" id="phone-help">En fazla 20 karakter. Boş kaydederek numaranızı kaldırabilirsiniz.</p>
+              @if (phoneForm.controls.phone.touched && phoneForm.controls.phone.invalid) { <p id="phone-error" class="field-error">Telefon en fazla 20 karakter olabilir.</p> }
+              <button class="primary" type="submit" [disabled]="savingPhone() || savingPassword() || !phoneForm.dirty">{{ savingPhone() ? 'Kaydediliyor…' : 'Bilgilerimi kaydet' }}</button>
+            </fieldset>
+          </form>
+        </section>
+        <section class="card" aria-labelledby="security-title">
+          <div class="section-heading"><span class="section-number" aria-hidden="true">02</span><div><h2 id="security-title">Parola ve güvenlik</h2><p>Hesabınızı korumak için güçlü ve benzersiz bir parola kullanın.</p></div></div>
+          <p class="security-note">Parola değiştiğinde açık oturumlarınız geçersiz olur. Yeni parolanızla tekrar giriş yapmanız gerekir.</p>
+          @if (passwordError()) { <p class="notice error" role="alert">{{ passwordError() }}</p> }
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" [attr.aria-busy]="savingPassword()">
+            <fieldset [disabled]="savingPhone() || savingPassword()">
+              <legend class="sr-only">Parolanı değiştir</legend>
+              <div class="field"><label for="current-password">Mevcut parola</label><input id="current-password" type="password" formControlName="currentPassword" required maxlength="128" autocomplete="current-password" [attr.aria-invalid]="passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid" aria-describedby="current-password-error">
+              @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) { <p class="field-error" id="current-password-error">Mevcut parolanızı girin.</p> }</div>
+              <div class="password-grid">
+                <div class="field"><label for="new-password">Yeni parola</label><input id="new-password" type="password" formControlName="newPassword" required minlength="12" maxlength="128" autocomplete="new-password" aria-describedby="new-password-help new-password-error" [attr.aria-invalid]="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid">
+                <p class="help" id="new-password-help">12–128 karakter olmalıdır.</p>
+                @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid) { <p class="field-error" id="new-password-error">12–128 karakterlik yeni bir parola girin.</p> }</div>
+                <div class="field"><label for="confirm-password">Yeni parola tekrar</label><input id="confirm-password" type="password" formControlName="confirmPassword" required maxlength="128" autocomplete="new-password" aria-describedby="confirm-password-error" [attr.aria-invalid]="passwordForm.controls.confirmPassword.touched && (passwordForm.controls.confirmPassword.invalid || passwordForm.hasError('passwordMismatch'))">
+                @if (passwordForm.controls.confirmPassword.touched && (passwordForm.controls.confirmPassword.invalid || passwordForm.hasError('passwordMismatch'))) { <p class="field-error" id="confirm-password-error">Yeni parolalar eşleşmelidir.</p> }</div>
+              </div>
+              @if (passwordForm.hasError('samePassword')) { <p class="field-error" role="alert">Yeni parola mevcut parolanızdan farklı olmalıdır.</p> }
+              <button class="primary" type="submit" [disabled]="savingPhone() || savingPassword()">{{ savingPassword() ? 'Değiştiriliyor…' : 'Parolamı değiştir' }}</button>
+            </fieldset>
+          </form>
+        </section>
+      </div>
+    </div>
+  }
+</section>

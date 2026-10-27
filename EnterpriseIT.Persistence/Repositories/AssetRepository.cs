@@ -24,5 +24,14 @@ namespace EnterpriseIT.Persistence.Repositories
             return await _context.Set<Asset>()
                 .FirstOrDefaultAsync(x => x.AssetCode == assetCode);
         }
+
+        public async Task<List<Asset>> GetForTicketAsync(int? assignedUserId = null)
+        {
+            return await _context.Assets
+                .Where(a => !assignedUserId.HasValue || a.Assignments.Any(x =>
+                    x.UserId == assignedUserId.Value && x.ReturnedDate == null))
+                .OrderBy(a => a.AssetCode)
+                .ToListAsync();
+        }
     }
 }

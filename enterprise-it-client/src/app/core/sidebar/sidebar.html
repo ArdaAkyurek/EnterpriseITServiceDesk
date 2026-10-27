@@ -4,12 +4,13 @@
   @if (auth.hasRole('Admin', 'Technician')) {
     <a routerLink="/dashboard/assets">Assets</a>
 
-  <a href="#">Tickets</a>
   }
+  <a routerLink="/dashboard/tickets">Tickets</a>
   @if (auth.hasRole('Admin')) {
-  <a href="#">Users</a>
-  <a href="#">Departments</a>
-  <a href="#">Roles</a>
+  <a routerLink="/dashboard/users">Users</a>
+  <a routerLink="/dashboard/departments">Departments</a>
+  <a routerLink="/dashboard/roles">Roles</a>
+  <a routerLink="/dashboard/audit-logs">Audit kayıtları</a>
   }
 
 </nav>

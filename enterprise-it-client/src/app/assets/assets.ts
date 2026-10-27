@@ -5,6 +5,7 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Va
 import { HttpErrorResponse } from '@angular/common/http';
 import { Asset, AssetType } from '../models/asset';
 import { AssetService } from '../services/asset';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-assets',
@@ -21,6 +22,8 @@ export class Assets implements OnInit {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly formOpen = signal(false);
+  readonly editingId = signal<number | null>(null);
+  readonly knownStatuses = ['Available', 'In Use', 'Maintenance', 'Retired'];
   readonly saving = signal(false);
   readonly typesLoading = signal(false);
   readonly assetTypes = signal<AssetType[]>([]);
@@ -47,7 +50,18 @@ export class Assets implements OnInit {
       ? { warrantyBeforePurchase: true } : null;
   }});
 
-  openForm(): void {
+  openForm(asset?: Asset): void {
+    if (this.saving() || this.formOpen()) return;
+    this.editingId.set(asset?.assetId ?? null);
+    if (asset) {
+      this.form.reset({
+        assetCode: asset.assetCode, brand: asset.brand, model: asset.model, serialNumber: asset.serialNumber,
+        assetTypeId: asset.assetTypeId, status: asset.status,
+        purchaseDate: asset.purchaseDate.slice(0, 10), warrantyEndDate: asset.warrantyEndDate.slice(0, 10)
+      });
+    } else this.form.reset();
+    this.submitted.set(false);
+    this.saveError.set('');
     this.formOpen.set(true);
     this.success.set('');
     if (!this.assetTypes().length) this.loadAssetTypes();
@@ -56,6 +70,7 @@ export class Assets implements OnInit {
   closeForm(): void {
     if (this.saving()) return;
     this.formOpen.set(false);
+    this.editingId.set(null);
     this.form.reset();
     this.submitted.set(false);
     this.saveError.set('');
@@ -86,7 +101,7 @@ export class Assets implements OnInit {
   }
 
   saveAsset(): void {
-    if (this.saving()) return;
+    if (this.saving() || this.loading()) return;
     this.submitted.set(true);
     this.saveError.set('');
     if (this.form.invalid || this.typesLoading() || !this.assetTypes().length) {
@@ -96,22 +111,27 @@ export class Assets implements OnInit {
 
     const value = this.form.getRawValue();
     this.saving.set(true);
-    this.assetService.createAsset({
+    const id = this.editingId();
+    const payload = {
       ...value,
       assetCode: value.assetCode.trim(), brand: value.brand.trim(),
       model: value.model.trim(), serialNumber: value.serialNumber.trim(),
       purchaseDate: `${value.purchaseDate}T00:00:00Z`,
       warrantyEndDate: `${value.warrantyEndDate}T00:00:00Z`
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: asset => {
+    };
+    const request: Observable<Asset | void> = id === null
+      ? this.assetService.createAsset(payload) : this.assetService.updateAsset(id, payload);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
         this.saving.set(false);
         this.closeForm();
-        this.success.set(`${asset.assetCode} kodlu demirbaş eklendi.`);
+        this.success.set(`${payload.assetCode} kodlu demirbaş ${id === null ? 'eklendi' : 'güncellendi'}.`);
         this.loadAssets();
       },
       error: (response: HttpErrorResponse) => {
         this.saving.set(false);
-        this.saveError.set(response.status === 400 && typeof response.error === 'string'
+        this.saveError.set(response.status === 404 ? 'Demirbaş artık bulunmuyor. Listeyi yenileyin.'
+          : response.status === 400 && typeof response.error === 'string'
           ? response.error
           : 'Demirbaş kaydedilemedi. Bilgilerinizi ve bağlantıyı kontrol edip tekrar deneyin.');
       }
@@ -123,7 +143,7 @@ export class Assets implements OnInit {
   }
 
   loadAssets(): void {
-    if (this.loading()) return;
+    if (this.loading() || this.saving()) return;
 
     this.loading.set(true);
     this.error.set('');

@@ -1,22 +1,16 @@
 .navbar {
-
-    min-height: 70px;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding-right: 25px;
-
-    background-color: #1e293b;
-
-    color: white;
-
-    display: flex;
-
-    align-items: center;
-
-    padding-left: 25px;
-
+  --session-control-height: 40px;
+  --session-control-padding: 0 14px;
+  --session-control-border: 1px solid #64748b;
+  --session-control-radius: 7px;
+  --session-control-font: 500 13px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  min-height: 84px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  padding: 16px 25px; background: #1e293b; color: #fff; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-.session { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.session button { border: 1px solid #94a3b8; background: transparent; color: white; padding: 9px 12px; border-radius: 5px; cursor: pointer; }
-.session button:disabled { opacity: .6; cursor: wait; }
+.navbar-left { min-width: 0; }.navbar h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.3px; }
+.identity { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; color: #cbd5e1; font-size: 12px; }.role { border-left: 1px solid #64748b; padding-left: 8px; color: #94a3b8; }
+.session { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.session-control { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; height: var(--session-control-height); padding: var(--session-control-padding); border: var(--session-control-border); border-radius: var(--session-control-radius); font: var(--session-control-font); background: transparent; color: #f1f5f9; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.session-control:hover { background: #ffffff0d; border-color: #94a3b8; }.session-control:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }.session-control:disabled { opacity: .6; cursor: wait; }
 .session-error { margin: 0; padding: 12px 25px; background: #fff0f0; color: #9f2424; }
+@media (max-width: 700px) { .navbar { padding: 16px 20px; }.navbar-left { width: 100%; }.session { margin-left: 0; } }

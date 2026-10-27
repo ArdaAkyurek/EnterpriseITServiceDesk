@@ -1,0 +1,58 @@
+<section aria-labelledby="departments-title" [attr.aria-busy]="loading()">
+  <header class="assets-header">
+    <div><h1 id="departments-title">Departmanlar</h1><p>Kurumsal departmanları ve açıklamalarını yönetin.</p></div>
+    <div class="actions">
+      <button type="button" (click)="loadDepartments()" [disabled]="loading() || busy()">Yenile</button>
+      <button type="button" class="primary" (click)="openForm()" [disabled]="loading() || busy() || formOpen() || !!deleteTarget()">Yeni departman</button>
+    </div>
+  </header>
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+  @if (formOpen()) {
+    <form class="asset-form" [formGroup]="form" (ngSubmit)="save()" aria-labelledby="department-form-title" [attr.aria-busy]="saving()">
+      <h2 id="department-form-title">{{ editingId() === null ? 'Yeni departman' : 'Departmanı düzenle' }}</h2>
+      @if (saveError()) { <p class="message error" role="alert">{{ saveError() }}</p> }
+      <fieldset [disabled]="saving()">
+        <legend class="sr-only">Departman bilgileri</legend>
+        <div class="field">
+          <label for="department-name">Departman adı</label>
+          <input id="department-name" formControlName="departmentName" required maxlength="100" [attr.aria-invalid]="form.controls.departmentName.touched && form.controls.departmentName.invalid" aria-describedby="department-name-error">
+          @if (form.controls.departmentName.touched && form.controls.departmentName.invalid) { <small id="department-name-error">Departman adını girin (en fazla 100 karakter).</small> }
+        </div>
+        <div class="field description-field">
+          <label for="department-description">Açıklama (isteğe bağlı)</label>
+          <textarea id="department-description" formControlName="departmentDescription" rows="3" maxlength="250" [attr.aria-invalid]="form.controls.departmentDescription.touched && form.controls.departmentDescription.invalid" aria-describedby="department-description-help"></textarea>
+          <span id="department-description-help" class="help">{{ form.controls.departmentDescription.value.length }} / 250 karakter</span>
+          @if (form.controls.departmentDescription.touched && form.controls.departmentDescription.invalid) { <small>Açıklama en fazla 250 karakter olabilir.</small> }
+        </div>
+      </fieldset>
+      <div class="actions"><button type="submit" class="primary" [disabled]="busy() || loading()">{{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}</button><button type="button" (click)="closeForm()" [disabled]="busy()">Vazgeç</button></div>
+    </form>
+  }
+  @if (deleteTarget(); as target) {
+    <section class="delete-confirmation" role="group" aria-labelledby="delete-department-title">
+      <h2 id="delete-department-title">Departman silinsin mi?</h2>
+      <p><strong>{{ target.departmentName }}</strong> departmanı kalıcı olarak silinecek. Kullanıcısı bulunan departman silinemez; önce kullanıcılarını başka departmana taşımalısınız.</p>
+      @if (deleteError()) { <p class="message error" role="alert">{{ deleteError() }}</p> }
+      <div class="actions"><button type="button" class="danger" (click)="confirmDelete()" [disabled]="busy() || loading()">{{ deleting() ? 'Siliniyor…' : 'Evet, departmanı sil' }}</button><button type="button" (click)="cancelDelete()" [disabled]="busy()">Vazgeç</button></div>
+    </section>
+  }
+  @if (loading()) { <p class="message" role="status">Departmanlar yükleniyor…</p> }
+  @else if (error()) { <div class="message error" role="alert"><p>{{ error() }}</p><button type="button" (click)="loadDepartments()">Tekrar dene</button></div> }
+  @else if (!departments().length) { <p class="message" role="status">Henüz departman bulunmuyor.</p> }
+  @else {
+    <p class="count" role="status">Toplam {{ departments().length }} departman</p>
+    <div class="table-container" role="region" aria-label="Departman listesi" tabindex="0">
+      <table>
+        <caption>Kurumsal departmanlar</caption>
+        <thead><tr><th scope="col">Departman adı</th><th scope="col">Açıklama</th><th scope="col">İşlemler</th></tr></thead>
+        <tbody>
+          @for (department of departments(); track department.departmentId) {
+            <tr><th scope="row">{{ department.departmentName }}</th><td class="department-description">{{ department.departmentDescription || 'Belirtilmedi' }}</td>
+              <td><div class="actions"><button type="button" (click)="openForm(department)" [disabled]="busy() || formOpen() || !!deleteTarget()" [attr.aria-label]="department.departmentName + ' departmanını düzenle'">Düzenle</button><button type="button" class="danger-outline" (click)="askDelete(department)" [disabled]="busy() || formOpen() || !!deleteTarget()" [attr.aria-label]="department.departmentName + ' departmanını sil'">Sil</button></div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

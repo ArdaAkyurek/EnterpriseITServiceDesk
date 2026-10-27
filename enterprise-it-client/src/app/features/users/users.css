@@ -1,0 +1,4 @@
+.help { font-size: 13px; color: #526078; }
+.active-field { justify-content: center; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; }
+input[type="checkbox"] { width: 18px; min-height: 18px; }

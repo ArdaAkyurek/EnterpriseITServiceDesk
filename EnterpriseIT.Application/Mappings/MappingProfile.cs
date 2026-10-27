@@ -54,7 +54,8 @@ public class MappingProfile : Profile
 
         CreateMap<UpdateTicketStatusDto, TicketStatus>();
 
-        CreateMap<TicketCategory,TicketCategoryDto>();
+        CreateMap<TicketCategory,TicketCategoryDto>()
+            .ForMember(dest => dest.TicketCategoryName, opt => opt.MapFrom(src => src.CategoryName));
 
         CreateMap<CreateTicketCategoryDto, TicketCategory>();
 

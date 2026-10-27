@@ -17,6 +17,8 @@ namespace EnterpriseIT.Application.DTOs.Ticket
         public string CreatedBy { get; set; } = string.Empty;
 
         public string? AssignedTo { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public string Category { get; set; } = string.Empty;
 

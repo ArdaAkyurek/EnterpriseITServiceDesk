@@ -51,9 +51,10 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> Create(CreateDepartmentDto dto)
     {
         var department = _mapper.Map<Department>(dto);
-
-        await _departmentRepository.AddAsync(department);
-        await _departmentRepository.SaveChangesAsync();
+        department.DepartmentName = department.DepartmentName.Trim();
+        department.DepartmentDescription = string.IsNullOrWhiteSpace(dto.DepartmentDescription) ? null : dto.DepartmentDescription.Trim();
+        var result = await _departmentRepository.CreateDepartmentAsync(department);
+        if (result == DepartmentWriteResult.DuplicateName) return Conflict("Bu isimde bir departman zaten var.");
 
         var departmentDto = _mapper.Map<DepartmentDto>(department);
 
@@ -66,17 +67,13 @@ public class DepartmentController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateDepartmentDto dto)
     {
-        var department = await _departmentRepository.GetByIdAsync(id);
-
-        if (department == null)
-        {
-            return NotFound();
-        }
-
-        _mapper.Map(dto, department);
-
-        _departmentRepository.Update(department);
-        await _departmentRepository.SaveChangesAsync();
+        var department = _mapper.Map<Department>(dto);
+        department.DepartmentId = id;
+        department.DepartmentName = department.DepartmentName.Trim();
+        department.DepartmentDescription = string.IsNullOrWhiteSpace(dto.DepartmentDescription) ? null : dto.DepartmentDescription.Trim();
+        var result = await _departmentRepository.UpdateDepartmentAsync(department);
+        if (result == DepartmentWriteResult.NotFound) return NotFound();
+        if (result == DepartmentWriteResult.DuplicateName) return Conflict("Bu isimde bir departman zaten var.");
 
         return NoContent();
     }
@@ -84,15 +81,9 @@ public class DepartmentController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var department = await _departmentRepository.GetByIdAsync(id);
-
-        if (department == null)
-        {
-            return NotFound();
-        }
-
-        _departmentRepository.Delete(department);
-        await _departmentRepository.SaveChangesAsync();
+        var result = await _departmentRepository.DeleteDepartmentAsync(id);
+        if (result == DepartmentWriteResult.NotFound) return NotFound();
+        if (result == DepartmentWriteResult.HasUsers) return Conflict("Bu departmanda kullanıcılar var. Önce kullanıcıları başka bir departmana taşıyın.");
 
         return NoContent();
     }

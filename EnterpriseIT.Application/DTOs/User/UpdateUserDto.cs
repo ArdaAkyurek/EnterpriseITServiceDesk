@@ -22,13 +22,16 @@ namespace EnterpriseIT.Application.DTOs.User
         [StringLength(128, MinimumLength = 12)]
         public string? Password { get; set; }
 
+        [StringLength(20)]
         public string? Phone { get; set; }
 
         public bool IsActive { get; set; } = true;
 
         // Foreign Keys
+        [Range(1, int.MaxValue)]
         public int DepartmentId { get; set; }
 
+        [Range(1, int.MaxValue)]
         public int RoleId { get; set; }
     }
 }

@@ -1,0 +1,14 @@
+.detail-card { background: white; border: 1px solid #dce3ed; border-radius: 8px; padding: 24px; margin-top: 20px; }
+h2 { margin-top: 0; overflow-wrap: anywhere; }
+dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+dt { color: #526078; font-size: 13px; margin-bottom: 6px; }
+dd { margin: 0; overflow-wrap: anywhere; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.actions { align-items: center; }
+a { color: #2459b8; }
+label { display: block; margin-bottom: 8px; }
+select { max-width: 420px; }
+#assignee-help { color: #526078; font-size: 13px; }
+.close-confirmation { border: 1px solid #d7dfed; border-radius: 8px; background: #f5f7fc; padding: 18px; }
+.close-confirmation h3 { margin-top: 0; font-size: 16px; }
+@media (max-width: 700px) { dl { grid-template-columns: 1fr; } .detail-card { padding: 16px; } }

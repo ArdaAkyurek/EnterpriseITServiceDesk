@@ -10,8 +10,10 @@ namespace EnterpriseIT.Application.Interfaces.Repositories
     public interface ITicketAttachmentRepository
     : IGenericRepository<TicketAttachment>
     {
-        Task<List<TicketAttachment>> GetAllWithDetailsAsync();
+        Task<List<TicketAttachment>> GetAllWithDetailsAsync(int ticketId);
 
-        Task<TicketAttachment?> GetByIdWithDetailsAsync(int id);
+        Task<TicketAttachment?> GetByIdWithDetailsAsync(int id, int? createdByUserId = null);
+
+        Task<bool> TryAddToOpenTicketAsync(TicketAttachment attachment, int? createdByUserId = null);
     }
 }

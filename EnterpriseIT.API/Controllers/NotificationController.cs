@@ -1,114 +1,50 @@
-﻿using AutoMapper;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using AutoMapper;
 using EnterpriseIT.Application.DTOs.Notification;
 using EnterpriseIT.Application.Interfaces.Repositories;
-using EnterpriseIT.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EnterpriseIT.API.Controllers
+namespace EnterpriseIT.API.Controllers;
+
+[ApiController]
+[Authorize(Roles = "Admin,Technician,Employee")]
+[Route("api/[controller]")]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+public class NotificationController(INotificationRepository repository, IMapper mapper) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class NotificationController : ControllerBase
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([Range(1, 1000000)] int page = 1)
     {
-        private readonly INotificationRepository _notificationRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
-
-        public NotificationController(
-            INotificationRepository notificationRepository,
-            IUserRepository userRepository,
-            IMapper mapper)
+        var items = await repository.GetAllWithDetailsAsync(UserId, page);
+        return Ok(new NotificationPageDto
         {
-            _notificationRepository = notificationRepository;
-            _userRepository = userRepository;
-            _mapper = mapper;
-        }
+            Items = mapper.Map<List<NotificationDto>>(items.Take(20)), Page = page,
+            HasMore = items.Count > 20, UnreadCount = await repository.GetUnreadCountAsync(UserId)
+        });
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var item = await repository.GetByIdWithDetailsAsync(id, UserId);
+        return item == null ? NotFound() : Ok(mapper.Map<NotificationDto>(item));
+    }
+
+    [HttpPut("{id:int}/read")]
+    public async Task<IActionResult> MarkRead(int id)
+    {
+        var item = await repository.GetByIdWithDetailsAsync(id, UserId);
+        if (item == null) return NotFound();
+        if (!item.IsRead)
         {
-            var notifications =
-                await _notificationRepository.GetAllWithDetailsAsync();
-
-            return Ok(_mapper.Map<List<NotificationDto>>(notifications));
+            item.IsRead = true;
+            item.UpdatedAt = DateTime.UtcNow;
+            await repository.SaveChangesAsync();
         }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var notification =
-                await _notificationRepository.GetByIdWithDetailsAsync(id);
-
-            if (notification == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(_mapper.Map<NotificationDto>(notification));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateNotificationDto dto)
-        {
-            var user = await _userRepository.GetByIdAsync(dto.UserId);
-
-            if (user == null)
-            {
-                return BadRequest("Geçersiz User.");
-            }
-
-            var notification = _mapper.Map<Notification>(dto);
-
-            notification.IsRead = false;
-
-            await _notificationRepository.AddAsync(notification);
-            await _notificationRepository.SaveChangesAsync();
-
-            var createdNotification =
-                await _notificationRepository.GetByIdWithDetailsAsync(notification.NotificationId);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = notification.NotificationId },
-                _mapper.Map<NotificationDto>(createdNotification));
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateNotificationDto dto)
-        {
-            var notification =
-                await _notificationRepository.GetByIdAsync(id);
-
-            if (notification == null)
-            {
-                return NotFound();
-            }
-
-            notification.IsRead = dto.IsRead;
-
-            _notificationRepository.Update(notification);
-
-            await _notificationRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var notification =
-                await _notificationRepository.GetByIdAsync(id);
-
-            if (notification == null)
-            {
-                return NotFound();
-            }
-
-            _notificationRepository.Delete(notification);
-
-            await _notificationRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

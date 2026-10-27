@@ -3,11 +3,16 @@ using EnterpriseIT.Application.DTOs.TicketComment;
 using EnterpriseIT.Application.Interfaces.Repositories;
 using EnterpriseIT.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace EnterpriseIT.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,Technician,Employee")]
 
 
     public class TicketCommentController : ControllerBase
@@ -16,6 +21,8 @@ namespace EnterpriseIT.API.Controllers
         private readonly ITicketRepository _ticketRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private int? EmployeeUserId => User.IsInRole("Employee")
+            ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!) : null;
 
         public TicketCommentController(
             ITicketCommentRepository ticketCommentRepository,
@@ -30,10 +37,12 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery, BindRequired, Range(1, int.MaxValue)] int ticketId)
         {
+            var ticket = await _ticketRepository.GetByIdWithDetailsAsync(ticketId, EmployeeUserId);
+            if (ticket == null) return NotFound();
             var comments =
-                await _ticketCommentRepository.GetAllWithDetailsAsync();
+                await _ticketCommentRepository.GetAllWithDetailsAsync(ticketId);
 
             return Ok(_mapper.Map<List<TicketCommentDto>>(comments));
         }
@@ -42,7 +51,7 @@ namespace EnterpriseIT.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var comment =
-                await _ticketCommentRepository.GetByIdWithDetailsAsync(id);
+                await _ticketCommentRepository.GetByIdWithDetailsAsync(id, EmployeeUserId);
 
             if (comment == null)
             {
@@ -56,20 +65,25 @@ namespace EnterpriseIT.API.Controllers
         public async Task<IActionResult> Create(CreateTicketCommentDto dto)
         {
             var ticket =
-                await _ticketRepository.GetByIdAsync(dto.TicketId);
+                await _ticketRepository.GetByIdWithDetailsAsync(dto.TicketId, EmployeeUserId);
 
             if (ticket == null)
             {
-                return BadRequest("Geçersiz Ticket.");
+                return NotFound();
             }
 
+            if (ticket.ClosedAt != null || ticket.Status.StatusName == "Closed")
+                return Conflict("Kapalı ticket’a yeni yorum eklenemez.");
+
             var comment = _mapper.Map<TicketComment>(dto);
+            comment.Comment = comment.Comment.Trim();
+            comment.CreatedAt = DateTime.UtcNow;
 
             // Giriş yapan kullanıcı
             comment.UserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
 
-            await _ticketCommentRepository.AddAsync(comment);
-            await _ticketCommentRepository.SaveChangesAsync();
+            if (!await _ticketCommentRepository.TryAddToOpenTicketAsync(comment, EmployeeUserId))
+                return Conflict("Ticket kapanmış veya değişmiş olabilir. Güncel bilgileri yükleyin.");
 
             var createdComment =
                 await _ticketCommentRepository.GetByIdWithDetailsAsync(comment.CommentId);
@@ -81,6 +95,7 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, UpdateTicketCommentDto dto)
         {
             var comment =
@@ -101,6 +116,7 @@ namespace EnterpriseIT.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var comment =

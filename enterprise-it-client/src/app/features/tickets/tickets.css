@@ -1,0 +1,8 @@
+.wide { grid-column: 1 / -1; }
+textarea { box-sizing: border-box; width: 100%; resize: vertical; border: 1px solid #aebdd1; border-radius: 5px; padding: 10px; font: inherit; color: #172b4d; }
+textarea:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+textarea[aria-invalid="true"] { border-color: #b42323; }
+.ticket-title { white-space: normal; min-width: 180px; overflow-wrap: anywhere; }
+#asset-help { color: #526078; font-size: 13px; }
+.worklists { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+.worklists button[aria-pressed="true"] { color: white; background: #2459b8; border-color: #2459b8; }

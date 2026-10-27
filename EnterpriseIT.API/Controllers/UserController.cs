@@ -83,7 +83,12 @@ namespace EnterpriseIT.API.Controllers
                 return BadRequest("Role bulunamadı.");
             }
 
+            if (role.RoleName is not ("Admin" or "Technician" or "Employee"))
+                return BadRequest("Desteklenmeyen kullanıcı rolü.");
+
             var user = _mapper.Map<User>(dto);
+            user.FirstName = user.FirstName.Trim();
+            user.LastName = user.LastName.Trim();
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
             user.CreatedAt = DateTime.UtcNow;
             await _userRepository.AddAsync(user);
@@ -131,13 +136,23 @@ namespace EnterpriseIT.API.Controllers
                 return BadRequest("Role bulunamadı.");
             }
 
+            if (role.RoleName is not ("Admin" or "Technician" or "Employee"))
+                return BadRequest("Desteklenmeyen kullanıcı rolü.");
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == id.ToString() &&
+                (!dto.IsActive || role.RoleName != "Admin"))
+                return BadRequest("Kendi hesabınızı pasifleştiremez veya Admin rolünüzü kaldıramazsınız.");
+
             _mapper.Map(dto, user);
+            user.FirstName = user.FirstName.Trim();
+            user.LastName = user.LastName.Trim();
             if (!string.IsNullOrEmpty(dto.Password))
             {
                 user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
             }
             user.UpdatedAt = DateTime.UtcNow;
-            _userRepository.Update(user);
+            // FindAsync ile izlenen entity'de yalnızca değişen alanlar kaydedilir;
+            // parola gönderilmediyse eşzamanlı profil parola değişikliği ezilmez.
             await _userRepository.SaveChangesAsync();
             return NoContent();
 
@@ -152,9 +167,7 @@ namespace EnterpriseIT.API.Controllers
             {
                 return NotFound();
             }
-            _userRepository.Delete(user);
-            await _userRepository.SaveChangesAsync();
-            return NoContent();
+            return Conflict("Audit geçmişini korumak için kullanıcılar kalıcı silinemez. Hesabı pasifleştirin.");
 
 
         }

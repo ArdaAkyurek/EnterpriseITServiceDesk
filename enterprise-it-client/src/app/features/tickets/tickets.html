@@ -1,0 +1,120 @@
+<section aria-labelledby="tickets-title" [attr.aria-busy]="loading()">
+  <header class="assets-header">
+    <div>
+      <h1 id="tickets-title">Ticket’lar</h1>
+      <p>{{ auth.hasRole('Employee') ? 'Oluşturduğunuz destek taleplerini buradan takip edebilirsiniz.' : 'Destek taleplerini buradan takip edebilirsiniz.' }}</p>
+    </div>
+    <div class="actions">
+      <button type="button" (click)="loadTickets()" [disabled]="loading() || saving()">Yenile</button>
+      <button type="button" class="primary" (click)="openForm()" [disabled]="formOpen()">Yeni ticket oluştur</button>
+    </div>
+  </header>
+
+  @if (auth.hasRole('Admin', 'Technician')) {
+    <div class="worklists" role="group" aria-label="Ticket çalışma listeleri">
+      <button type="button" (click)="changeView('all')" [attr.aria-pressed]="currentView() === 'all'" [disabled]="saving()">Tümü</button>
+      <button type="button" (click)="changeView('assigned')" [attr.aria-pressed]="currentView() === 'assigned'" [disabled]="saving()">Bana atananlar</button>
+      <button type="button" (click)="changeView('unassigned')" [attr.aria-pressed]="currentView() === 'unassigned'" [disabled]="saving()">Atanmamışlar</button>
+    </div>
+  } @else if (auth.hasRole('Employee')) {
+    <h2>Taleplerim</h2>
+  }
+
+  @if (success()) { <p class="message success" role="status">{{ success() }}</p> }
+
+  @if (formOpen()) {
+    <form class="asset-form" [formGroup]="form" (ngSubmit)="saveTicket()" aria-labelledby="create-ticket-title" [attr.aria-busy]="saving()">
+      <h2 id="create-ticket-title">Yeni ticket</h2>
+      <p>Başlık, açıklama, kategori ve öncelik zorunludur.</p>
+      @if (saveError()) { <p class="message error" role="alert">{{ saveError() }}</p> }
+      @if (optionsLoading()) { <p role="status">Form seçenekleri yükleniyor…</p> }
+      @if (optionsError()) {
+        <div class="message error" role="alert">
+          <p>{{ optionsError() }}</p>
+          <button type="button" (click)="loadOptions()" [disabled]="optionsLoading()">Tekrar dene</button>
+        </div>
+      }
+      <fieldset [disabled]="saving() || optionsLoading()">
+        <legend class="sr-only">Ticket bilgileri</legend>
+        <div class="form-grid">
+          <div class="field wide">
+            <label for="ticket-title">Başlık</label>
+            <input id="ticket-title" formControlName="title" required maxlength="150" [attr.aria-invalid]="invalid('title')" aria-describedby="title-error">
+            @if (invalid('title')) { <small id="title-error">Başlık girin (en fazla 150 karakter).</small> }
+          </div>
+          <div class="field wide">
+            <label for="ticket-description">Açıklama</label>
+            <textarea id="ticket-description" formControlName="description" rows="5" required maxlength="10000" [attr.aria-invalid]="invalid('description')" aria-describedby="description-error"></textarea>
+            @if (invalid('description')) { <small id="description-error">Sorunu açıklayın (en fazla 10.000 karakter).</small> }
+          </div>
+          <div class="field">
+            <label for="ticket-category">Kategori</label>
+            <select id="ticket-category" formControlName="categoryId" required [attr.aria-invalid]="invalid('categoryId')" aria-describedby="category-error">
+              <option [ngValue]="0">Kategori seçin</option>
+              @for (category of options()?.categories ?? []; track category.ticketCategoryId) {
+                <option [ngValue]="category.ticketCategoryId">{{ category.ticketCategoryName }}</option>
+              }
+            </select>
+            @if (invalid('categoryId')) { <small id="category-error">Kategori seçin.</small> }
+          </div>
+          <div class="field">
+            <label for="ticket-priority">Öncelik</label>
+            <select id="ticket-priority" formControlName="priorityId" required [attr.aria-invalid]="invalid('priorityId')" aria-describedby="priority-error">
+              <option [ngValue]="0">Öncelik seçin</option>
+              @for (priority of options()?.priorities ?? []; track priority.ticketPriorityId) {
+                <option [ngValue]="priority.ticketPriorityId">{{ priority.priorityName }}</option>
+              }
+            </select>
+            @if (invalid('priorityId')) { <small id="priority-error">Öncelik seçin.</small> }
+          </div>
+          <div class="field wide">
+            <label for="ticket-asset">İlgili demirbaş (isteğe bağlı)</label>
+            <select id="ticket-asset" formControlName="assetId" aria-describedby="asset-help">
+              <option [ngValue]="null">Demirbaş seçmeden devam et</option>
+              @for (asset of options()?.assets ?? []; track asset.assetId) {
+                <option [ngValue]="asset.assetId">{{ asset.assetCode }} — {{ asset.brand }} {{ asset.model }}</option>
+              }
+            </select>
+            @if (auth.hasRole('Employee')) { <span id="asset-help">Yalnızca üzerinize zimmetli demirbaşlar listelenir.</span> }
+          </div>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="saving() || loading() || optionsLoading() || !!optionsError() || !options()">{{ saving() ? 'Kaydediliyor…' : 'Ticket oluştur' }}</button>
+        <button type="button" (click)="closeForm()" [disabled]="saving()">Vazgeç</button>
+      </div>
+    </form>
+  }
+
+  @if (loading()) {
+    <p class="message" role="status">Ticket’lar yükleniyor…</p>
+  } @else if (error()) {
+    <div class="message error" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="loadTickets()">Tekrar dene</button>
+    </div>
+  } @else if (!tickets().length) {
+    <p class="message" role="status">{{ emptyMessage() }}</p>
+  } @else {
+    <p class="count" role="status">{{ viewLabel() }} · Toplam {{ tickets().length }} ticket</p>
+    <div class="table-container" tabindex="0" role="region" aria-label="Ticket listesi">
+      <table>
+        <caption>Destek talepleri</caption>
+        <thead><tr>
+          <th scope="col">Ticket</th><th scope="col">Kategori</th><th scope="col">Öncelik</th><th scope="col">Durum</th>
+          <th scope="col">Oluşturan</th><th scope="col">Atanan</th><th scope="col">Demirbaş</th><th scope="col">Oluşturulma</th>
+        </tr></thead>
+        <tbody>
+          @for (ticket of tickets(); track ticket.ticketId) {
+            <tr>
+              <th scope="row" class="ticket-title"><a [routerLink]="['/dashboard/tickets', ticket.ticketId]">#{{ ticket.ticketId }} · {{ ticket.title }}</a></th>
+              <td>{{ ticket.category }}</td><td>{{ ticket.priority }}</td><td><span class="status">{{ ticket.status }}</span></td>
+              <td>{{ ticket.createdBy }}</td><td>{{ ticket.assignedTo || 'Henüz atanmadı' }}</td>
+              <td>{{ ticket.asset || 'Belirtilmedi' }}</td><td>{{ ticket.createdAt | date:'dd.MM.yyyy HH:mm' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

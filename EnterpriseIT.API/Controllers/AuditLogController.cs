@@ -3,6 +3,7 @@ using EnterpriseIT.Application.DTOs.AuditLog;
 using EnterpriseIT.Application.Interfaces.Repositories;
 using EnterpriseIT.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EnterpriseIT.API.Controllers;
 
@@ -23,11 +24,11 @@ public class AuditLogController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery, Range(1, 1000000)] int page = 1)
     {
-        var logs = await _auditLogRepository.GetAllWithDetailsAsync();
+        var logs = await _auditLogRepository.GetAllWithDetailsAsync(page);
 
-        return Ok(_mapper.Map<List<AuditLogDto>>(logs));
+        return Ok(new AuditLogPageDto(_mapper.Map<List<AuditLogDto>>(logs.Take(AuditLogPageDto.PageSize)), page, logs.Count > AuditLogPageDto.PageSize));
     }
 
     [HttpGet("{id}")]
@@ -43,37 +44,4 @@ public class AuditLogController : ControllerBase
         return Ok(_mapper.Map<AuditLogDto>(log));
     }
 
-    [HttpPost]
-
-    public async Task<IActionResult> Create(AuditLogDto dto)
-    {
-        var log = _mapper.Map<AuditLog>(dto);
-
-        await _auditLogRepository.AddAsync(log);
-        await _auditLogRepository.SaveChangesAsync();
-
-        var AuditLogDto = _mapper.Map<AuditLogDto>(log);
-
-        return Ok();
-
-    }
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id,AuditLogDto dto)
-    {
-        var log = await _auditLogRepository.GetByIdAsync(id);
-        if (log == null)
-        {
-            return NotFound();
-        }
-        log.Action = dto.Action;
-        log.EntityName = dto.EntityName;
-        log.EntityId = dto.EntityId;
-        log.UpdatedAt = DateTime.UtcNow;
-
-        _auditLogRepository.Update(log);
-        await _auditLogRepository.SaveChangesAsync();
-
-        return NoContent();
-
-    }
 }

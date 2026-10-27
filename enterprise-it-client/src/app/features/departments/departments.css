@@ -1,0 +1,11 @@
+.description-field { margin-top: 18px; }
+textarea { box-sizing: border-box; width: 100%; resize: vertical; border: 1px solid #aebdd1; border-radius: 6px; padding: 12px; font: inherit; color: #172b4d; }
+textarea:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+textarea[aria-invalid="true"] { border-color: #b42323; }
+.help { color: #607089; font-size: 12px; }
+.department-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.delete-confirmation { margin: 20px 0; padding: 22px; border: 1px solid #e8b4b4; border-radius: 8px; background: #fff7f7; }
+.delete-confirmation h2 { margin-top: 0; font-size: 19px; }
+.delete-confirmation p { line-height: 1.6; }
+button.danger { background: #a32626; color: white; border-color: #a32626; }
+button.danger-outline { border-color: #d8a0a0; color: #a32626; }

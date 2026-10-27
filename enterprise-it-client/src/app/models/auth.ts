@@ -13,3 +13,16 @@ export interface LoginResponse {
   expiresAt: string;
   user: AuthUser;
 }
+
+export interface UserProfile extends AuthUser {
+  department: string;
+  phone: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ChangePassword {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
